@@ -1,5 +1,7 @@
 # kfx_dependency_injection
 
+[![Dart](https://github.com/JCKodel/kfx_dependency_injection/actions/workflows/dart.yml/badge.svg)](https://github.com/JCKodel/kfx_dependency_injection/actions/workflows/dart.yml)
+
 A simple dependency injection and service locator inspired by .net service provider.
 
 In software engineering, dependency injection is a design pattern in which an object or function receives other objects or functions that it depends on, so you can pass
