@@ -1,6 +1,6 @@
 // ignore_for_file: inference_failure_on_function_invocation
 
-import 'package:flutter_test/flutter_test.dart';
+import 'package:test/test.dart';
 
 import 'package:kfx_dependency_injection/kfx_dependency_injection.dart';
 
