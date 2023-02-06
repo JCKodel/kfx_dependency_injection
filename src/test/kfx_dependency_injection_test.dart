@@ -11,8 +11,6 @@ class _TestClass {
 }
 
 void _expectException<TException extends Exception>(void Function() method, String expectedMessage) {
-  expect(method, throwsA(isA<TException>()));
-
   try {
     method();
     fail("Expected ${TException} was not thrown");
