@@ -1,2 +1,1 @@
-# kfx_dependency_injection
-Flutter Dependency Injection library
+src/README.md
