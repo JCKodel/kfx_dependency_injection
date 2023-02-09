@@ -1,6 +1,6 @@
 # kfx_dependency_injection
 
-[![Dart](https://github.com/JCKodel/kfx_dependency_injection/actions/workflows/dart.yml/badge.svg)](https://github.com/JCKodel/kfx_dependency_injection/actions/workflows/dart.yml)
+[![Dart](https://github.com/JCKodel/kfx_dependency_injection/actions/workflows/dart.yml/badge.svg)](https://github.com/JCKodel/kfx_dependency_injection/actions/workflows/dart.yml) | [Versão Português](README.pt.md)
 
 A simple dependency injection and service locator inspired by .net service provider.
 
@@ -11,26 +11,37 @@ It also works as a service locator (when you have an abstract/interface definiti
 
 ## Features
 
-1) Allows registration of transitional and singleton dependencies
+1) Allows registration of transient and singleton dependencies
 2) 100% code coverage on unit tests
 3) Covers misconfigurated lint options (such as using generic methods without providing generic types)
 
 ## Usage
 
 For example, you can define an authentication system as a set of empty common methods (in an abstract class, which is the closest you can get right now of a true
-interface in Dart). Then, you implement the authentication itself on another class, let's say, using Firebase authentication.
+interface in Dart). Then, you implement the authentication itself on another class, let's say, using Firebase authentication. Wanna use AWS Incognito? Just reimplement
+that abstract class using Incognito e change the registration to point to it. Done, without breaking changes.
 
-Log is important and you also do the same for logging. Perhaps using `dart:developer` to make it so.
+Log is important and you can also do the same for logging. Perhaps using `dart:developer` to make it so.
+
+When you register the authentication service, you can inject the log service on it (at that point, it is an abstract class that doesn't care how it will be implemented).
+Change the log registration to some other type (perhaps some remote logging?) and everything keeps working perfectly, and you don't even need to touch the authentication
+service (since all is based on interfaces/abstract classes, which are only contracts to concrete implementation)
 
 So the registration on `main` is something like this:
 
 ```dart
-ServiceProvider.instance.registerSingleton<IAuthenticationService>((serviceProvider) => FirebaseAuthenticationService(logService: serviceProvider.getService<ILogService>()));
+ServiceProvider.instance.registerSingleton<IAuthenticationService>(
+  (serviceProvider) => FirebaseAuthenticationService(
+    logService: serviceProvider.getService<ILogService>()
+  )
+);
 
-ServiceProvider.instance.registerSingleton<ILogService>((serviceProvider) => DartDeveloperLogService());
+ServiceProvider.instance.registerSingleton<ILogService>(
+  (serviceProvider) => DartDeveloperLogService()
+);
 ```
 
-Notice that the order of registration doesn't matter, as long as you register all dependencies in the same location (a good place is the `main` method, before your app runs).
+Notice that the order of registration doesn't matter, as long as you register all dependencies before using them (a good place is the `main` method, before your app runs).
 
 Now, to get your authentication service, with the injected log stuff defined in the registration, you just need to:
 
@@ -40,15 +51,15 @@ final authenticationService = ServiceProvider.instance.getRequiredService<IAuthe
 
 And that's it. You don't need to know the concrete implementation nor know what kind of log is being used (or if it even exist).
 
-### Singleton vs Transitional
+### Singleton vs Transient
 
-The main difference between the registrations are: whenever you call `getService`, `getRequiredService` or something is injected in another constructor, singletons always
-returns the same instance of a class, while transitional registrations always returns a new instance of that class (in most cases, you want a singleton).
+The difference between the registrations are: whenever you call `getService`, `getRequiredService` or something is injected in another constructor, singletons always
+returns the same instance of a class, while transient registrations always returns a new instance of that class (in most cases, you want a singleton).
 
 ### getService vs getRequiredService
 
-The difference between those methods is that `getService` can return null if the specified service was not registered, while `getRequiredService` will throw a
-`ServiceNotRegisteredException` if the service was not registered. You should use `getRequiredService` to ensure everything was successfully registered.
+The difference between those methods is that `getService` can return `null` if the specified service was not registered, while `getRequiredService` will throw a
+`ServiceNotRegisteredException` if the service was not registered. You should use `getRequiredService` to ensure everything was correctly registered during app's initialization.
 
 ## Additional information
 
@@ -58,7 +69,8 @@ in unit tests to cleanup the `ServiceProvider` manager).
 Since Dart is uncapable of returning unique type names, all methods in `ServiceProvider` accepts a key, which will be used to differentiate types.
 
 For instance: the `firebase_authentication` package contains an `User` class. It's probable that you also have a `User` class in your code, which has nothing to do
-with that Firebase implementation. But Dart will return `User` in both cases when we ask the name of the type.
+with that Firebase implementation. The problem is that Dart will return `User` in both cases when we ask the name of the type. That's the same reason you have to use
+the `as`, `hide` and `show` keywords during `import` to avoid class and functions names conflicts.
 
 So, if you have two classes with the same name and want to register them (since is not possible to register a type more than once), you can differentiate them using
 the `key` argument:
@@ -67,11 +79,17 @@ the `key` argument:
 import 'some_class.dart';
 import 'package:some_package:some_class.dart' as SomePackage;
 
-ServiceProvider.instance.registerSingleton<SomeClass>();
-ServiceProvider.instance.registerSingleton<SomePackage.SomeClass>(key: "SomePackage");
+ServiceProvider.instance.registerSingleton<SomeClass>(
+  (serviceProvider) => SomeClass()
+);
+
+ServiceProvider.instance.registerSingleton<SomePackage.SomeClass>(
+  (serviceProvider) => SomePackage.SomeClass(),
+  key: "SomePackage"
+);
 ```
 
-The second registration must use the `key` argument because the `Someclass` exists in multiple locations.
+The second registration must use the `key` argument because the `SomeClass` exists in multiple locations and it was already registered.
 
 To retrieve each version of the registration, use the same key:
 
@@ -81,7 +99,7 @@ import 'some_class.dart';
 final someClass = ServiceProvider.instance.getRequiredService<SomeClass>();
 ```
 
-This will return the first registration (because `key` is null in both cases).
+This will return the first registration (because `key` is `null` in both cases).
 
 ```dart
 import 'package:some_package:some_class.dart';
