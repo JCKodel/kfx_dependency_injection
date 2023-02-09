@@ -9,3 +9,7 @@
 ## 1.0.0+2
 
 * Downgrading Dart requirements to match pub.dev and refactoring project structure
+
+## 1.0.0+3
+
+* Added portuguese documentation as well as some fixes in the English README.md version
