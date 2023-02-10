@@ -1,5 +1,6 @@
 // ignore_for_file: invalid_use_of_protected_member
 
+import 'i_platform_info.dart';
 import 'platform_info.dart';
 import 'service_already_registered_exception.dart';
 import 'service_invalid_inference_exception.dart';
@@ -39,7 +40,7 @@ class ServiceProvider {
   /// Throws `ServiceAlreadyRegisteredException` if the service is already registered as singleton or transient
   ///
   /// Throws `ServiceInvalidInferenceException` if you forget to specify `TService`
-  void registerSingleton<TService>(TService Function(ServiceProvider serviceProvider, PlatformInfo platformInfo) constructor, {String? key}) {
+  void registerSingleton<TService>(TService Function(ServiceProvider serviceProvider, IPlatformInfo platformInfo) constructor, {String? key}) {
     _registerService(constructor, key, true);
   }
 
@@ -55,11 +56,11 @@ class ServiceProvider {
   /// Throws `ServiceAlreadyRegisteredException` if the service is already registered as singleton or transient
   ///
   /// Throws `ServiceInvalidInferenceException` if you forget to specify `TService`
-  void registerTransient<TService>(TService Function(ServiceProvider serviceProvider, PlatformInfo platformInfo) constructor, {String? key}) {
+  void registerTransient<TService>(TService Function(ServiceProvider serviceProvider, IPlatformInfo platformInfo) constructor, {String? key}) {
     _registerService(constructor, key, false);
   }
 
-  void _registerService<TService>(TService Function(ServiceProvider serviceProvider, PlatformInfo platformInfo) constructor, String? key, bool isSingleton) {
+  void _registerService<TService>(TService Function(ServiceProvider serviceProvider, IPlatformInfo platformInfo) constructor, String? key, bool isSingleton) {
     final serviceKey = _getServiceKey<TService>(key);
 
     if (_factoryRegistry.containsKey(serviceKey)) {
@@ -158,7 +159,7 @@ class ServiceProvider {
 class _ServiceFactory<TService> {
   _ServiceFactory(this.constructor, this.isSingleton);
 
-  final TService Function(ServiceProvider serviceProvider, PlatformInfo platformInfo) constructor;
+  final TService Function(ServiceProvider serviceProvider, IPlatformInfo platformInfo) constructor;
   final bool isSingleton;
 
   TService? _instance;

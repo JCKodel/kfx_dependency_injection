@@ -1,11 +1,12 @@
 import 'package:flutter/foundation.dart';
 
+import 'i_platform_info.dart';
 import 'platform_host.dart';
 import 'platform_media.dart';
 import 'web_current_platform_info.dart' if (dart.library.io) "io_get_current_platform_info.dart";
 
 /// Holds information about the current platform and host.
-class PlatformInfo {
+class PlatformInfo implements IPlatformInfo {
   const PlatformInfo({required this.platformMedia, required this.platformHost});
 
   /// What kind of platform the app is running?

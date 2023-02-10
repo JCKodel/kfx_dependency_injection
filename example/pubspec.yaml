@@ -9,7 +9,8 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
-  kfx_dependency_injection: ^1.0.0
+  kfx_dependency_injection:
+    path: ..
 
 dev_dependencies:
   flutter_lints: ^2.0.0

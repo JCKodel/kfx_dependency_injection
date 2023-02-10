@@ -1,16 +1,17 @@
 import 'package:flutter/material.dart';
 
+import 'package:kfx_dependency_injection/kfx_dependency_injection/i_platform_info.dart';
 import 'package:kfx_dependency_injection/kfx_dependency_injection/service_provider.dart';
 
 void main() {
   // Register a class that receives an injection of a dependency
   ServiceProvider.instance.registerTransient<MainApp>(
-    (sp) => MainApp(helloWorldProvider: sp.getRequiredService<IHelloWorldProvider>()),
+    (sp, p) => MainApp(helloWorldProvider: sp.getRequiredService<IHelloWorldProvider>()),
   );
 
   // Register a concrete class that will implement a service `IHelloWorldProvider` to be injected when needed
   ServiceProvider.instance.registerSingleton<IHelloWorldProvider>(
-    (sp) => EnglishHelloWorldProvider(),
+    (sp, p) => EnglishHelloWorldProvider(platformInfo: p),
   );
 
   // Builds the `MainApp` class with injected dependencies
@@ -39,12 +40,20 @@ class MainApp extends StatelessWidget {
 }
 
 /// An interface (contract) of a service (in this case, a "hello world" text provider)
+@immutable
 abstract class IHelloWorldProvider {
+  const IHelloWorldProvider({required this.platformInfo});
+
+  final IPlatformInfo platformInfo;
+
   String get helloWorldText;
 }
 
 /// An example of a concrete implementation of `IHelloWorldProvider`
+@immutable
 class EnglishHelloWorldProvider extends IHelloWorldProvider {
+  const EnglishHelloWorldProvider({required super.platformInfo});
+
   @override
-  String get helloWorldText => "Hello world!";
+  String get helloWorldText => "Hello world from ${platformInfo.platformMedia} ${platformInfo.platformHost}!";
 }
