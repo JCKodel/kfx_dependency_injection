@@ -6,6 +6,8 @@ import 'service_already_registered_exception.dart';
 import 'service_invalid_inference_exception.dart';
 import 'service_not_registered_exception.dart';
 
+typedef InjectorDelegate<TService> = TService Function(ServiceProvider serviceProvider, IPlatformInfo platformInfo);
+
 /// Defines a mechanism for retrieving a service object; that is, an object that provides custom support to other objects.
 ///
 /// To use it, register your services using the `registerSingleton` and `registerTransient` methods before your app starts.
@@ -40,7 +42,7 @@ class ServiceProvider {
   /// Throws `ServiceAlreadyRegisteredException` if the service is already registered as singleton or transient
   ///
   /// Throws `ServiceInvalidInferenceException` if you forget to specify `TService`
-  void registerSingleton<TService>(TService Function(ServiceProvider serviceProvider, IPlatformInfo platformInfo) constructor, {String? key}) {
+  void registerSingleton<TService>(InjectorDelegate<TService> constructor, {String? key}) {
     _registerService(constructor, key, true);
   }
 
@@ -56,11 +58,11 @@ class ServiceProvider {
   /// Throws `ServiceAlreadyRegisteredException` if the service is already registered as singleton or transient
   ///
   /// Throws `ServiceInvalidInferenceException` if you forget to specify `TService`
-  void registerTransient<TService>(TService Function(ServiceProvider serviceProvider, IPlatformInfo platformInfo) constructor, {String? key}) {
+  void registerTransient<TService>(InjectorDelegate<TService> constructor, {String? key}) {
     _registerService(constructor, key, false);
   }
 
-  void _registerService<TService>(TService Function(ServiceProvider serviceProvider, IPlatformInfo platformInfo) constructor, String? key, bool isSingleton) {
+  void _registerService<TService>(InjectorDelegate<TService> constructor, String? key, bool isSingleton) {
     final serviceKey = _getServiceKey<TService>(key);
 
     if (_factoryRegistry.containsKey(serviceKey)) {
@@ -94,6 +96,26 @@ class ServiceProvider {
   /// Unregister all registered services (this is usefull, for instance, in test environments)
   void unregisterAll() {
     _factoryRegistry.clear();
+  }
+
+  /// Overrides a previous registration (for example, to mock concrete implementations in unit tests)
+  ///
+  /// The override is registered as singleton or transient depending on the original registration, and that registration must exist
+  void override<TService>(InjectorDelegate<TService> constructor, {String? key}) {
+    final serviceKey = _getServiceKey<TService>(key);
+    final registration = _factoryRegistry[serviceKey];
+
+    if (registration == null) {
+      throw ServiceNotRegisteredException(serviceKey: serviceKey);
+    }
+
+    unregister<TService>(key: key);
+
+    if (registration.isSingleton) {
+      registerSingleton<TService>(constructor, key: key);
+    } else {
+      registerTransient<TService>(constructor, key: key);
+    }
   }
 
   /// Returns `true` if the service `TService` is registered with the specified `key`.
@@ -159,7 +181,7 @@ class ServiceProvider {
 class _ServiceFactory<TService> {
   _ServiceFactory(this.constructor, this.isSingleton);
 
-  final TService Function(ServiceProvider serviceProvider, IPlatformInfo platformInfo) constructor;
+  final InjectorDelegate<TService> constructor;
   final bool isSingleton;
 
   TService? _instance;

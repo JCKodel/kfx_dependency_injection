@@ -10,6 +10,12 @@ class _TestClass {
   int value = 0;
 }
 
+class _MockTestClass extends _TestClass {
+  _MockTestClass({required int value}) {
+    this.value = value;
+  }
+}
+
 void _expectException<TException extends Exception>(void Function() method, String expectedMessage) {
   try {
     method();
@@ -35,6 +41,27 @@ void main() {
     expect(tc2.value, 2);
     expect(ServiceProvider.instance.getRequiredService<_TestClass>(key: "1").value, 0);
     expect(ServiceProvider.instance.getRequiredService<_TestClass>(key: "2").value, 0);
+
+    ServiceProvider.instance.unregisterAll();
+  });
+
+  test("Overrides must work", () {
+    ServiceProvider.instance.registerTransient((serviceProvider, platformInfo) => _TestClass(), key: "1");
+    ServiceProvider.instance.registerTransient((serviceProvider, platformInfo) => _TestClass(), key: "2");
+
+    ServiceProvider.instance.override<_TestClass>((serviceProvider, platformInfo) => _MockTestClass(value: 11), key: "1");
+    ServiceProvider.instance.override<_TestClass>((serviceProvider, platformInfo) => _MockTestClass(value: 22), key: "2");
+
+    final tc1 = ServiceProvider.instance.getRequiredService<_TestClass>(key: "1");
+    final tc2 = ServiceProvider.instance.getRequiredService<_TestClass>(key: "2");
+
+    expect(tc1.value, 11);
+    expect(tc2.value, 22);
+    expect(ServiceProvider.instance.getRequiredService<_TestClass>(key: "1").value, 11);
+
+    tc1.value = 33;
+
+    expect(ServiceProvider.instance.getRequiredService<_TestClass>(key: "2").value, 22);
 
     ServiceProvider.instance.unregisterAll();
   });

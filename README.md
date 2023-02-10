@@ -67,6 +67,13 @@ returns the same instance of a class, while transient registrations always retur
 The difference between those methods is that `getService` can return `null` if the specified service was not registered, while `getRequiredService` will throw a
 `ServiceNotRegisteredException` if the service was not registered. You should use `getRequiredService` to ensure everything was correctly registered during app's initialization.
 
+## Mocking
+
+After registering a type, you can override it using `ServiceProvider.instance.override<TService>((serviceProvider, platformInfo) => MockClass(), key: "some key")`.
+
+This is usefull when you use some remote API service registered on your app, but want to mock that service in unit tests. In this case, the app remains as it is (no change
+is required). In your unit test, you override the registration of your api calls to some mock class and you're done.
+
 ## Additional information
 
 There are some methods to check if a type is registered (`isRegistered<T>()`) and methods to allow unregistration (this is usefull to release singleton instances or

@@ -17,3 +17,7 @@
 ## 1.0.0+4
 
 * Add platform info to `ServiceProvider` so injected classes can be chosen by platform as well
+
+## 1.0.0+5
+
+* Allows override of registrations (for unit test mocking purposes, for instance)

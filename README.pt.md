@@ -68,6 +68,14 @@ A diferença entre estes métodos é que `getService` pode retornar `null` caso 
 lançar uma exceção do tipo `ServiceNotRegisteredException` se o serviço não foi registrado. Você deveria usar `getRequiredService` para certificar-se de que tudo tenha
 sido registrado corretamente durante a inicialização da app.
 
+## Mocking
+
+Após registrar um tipo, você pode sobreescrevê-lo usando `ServiceProvider.instance.override<TService>((serviceProvider, platformInfo) => MockClass(), key: "some key")`.
+
+Isso é útil quando você usa um serviço de API remoto registrado no teu app, mas quer "mockar" este serviço em testes de unidade (onde "mockar" é o ato de criar uma classe
+falsa que não faz chamadas remotas, acesso a banco de dados, etc. exclusivamente para fins de testes). Neste caso, a app continua com o mesmo código (nenhuma mudança é
+requerida). No teu teste de unidade, você sobreescreve o registro da tua chamada de api para alguma classe mock e está pronto.
+
 ## Informações adicionais
 
 Há alguns métodos para checar se um tipo foi registrado (`isRegistered<T>()`) e métodos para permitir o desregistro (isso é útil para liberar instâncias singleton ou em testes
