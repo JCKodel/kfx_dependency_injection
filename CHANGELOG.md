@@ -13,3 +13,7 @@
 ## 1.0.0+3
 
 * Added portuguese documentation as well as some fixes in the English README.md version
+
+# 1.0.0+4
+
+* Upgrade Dart requirements to reflect the up-to-date pub.dev analysis.
