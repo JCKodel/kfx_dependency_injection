@@ -74,6 +74,9 @@ After registering a type, you can override it using `ServiceProvider.instance.ov
 This is usefull when you use some remote API service registered on your app, but want to mock that service in unit tests. In this case, the app remains as it is (no change
 is required). In your unit test, you override the registration of your api calls to some mock class and you're done.
 
+That override can take place before or after the normal registration (i.e.: you can override before instantiating your app and registering your types or after that, it
+doesn't matter)
+
 ## Additional information
 
 There are some methods to check if a type is registered (`isRegistered<T>()`) and methods to allow unregistration (this is usefull to release singleton instances or

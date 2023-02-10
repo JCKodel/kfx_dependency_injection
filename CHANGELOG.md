@@ -21,3 +21,7 @@
 ## 1.0.0+5
 
 * Allows override of registrations (for unit test mocking purposes, for instance)
+
+## 1.2.0
+
+* Allows override of registrations even before the registrations take place

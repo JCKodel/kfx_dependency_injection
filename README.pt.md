@@ -76,6 +76,9 @@ Isso é útil quando você usa um serviço de API remoto registrado no teu app, 
 falsa que não faz chamadas remotas, acesso a banco de dados, etc. exclusivamente para fins de testes). Neste caso, a app continua com o mesmo código (nenhuma mudança é
 requerida). No teu teste de unidade, você sobreescreve o registro da tua chamada de api para alguma classe mock e está pronto.
 
+Esta sobreescrita pode ser feita antes ou depois do registro normal (i.e.: você pode sobreescrever antes de iniciar a tua app e registrar os teus tipos ou depois disso,
+não importa a ordem)
+
 ## Informações adicionais
 
 Há alguns métodos para checar se um tipo foi registrado (`isRegistered<T>()`) e métodos para permitir o desregistro (isso é útil para liberar instâncias singleton ou em testes

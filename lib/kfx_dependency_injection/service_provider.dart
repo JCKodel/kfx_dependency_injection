@@ -30,6 +30,9 @@ class ServiceProvider {
   // ignore: strict_raw_type
   final _factoryRegistry = <String, _ServiceFactory>{};
 
+  // ignore: strict_raw_type
+  final _overrideFactoryRegistry = <String, Object>{};
+
   /// Register a constructor as a singleton service (i.e.: the `TService` will always point to the same instance)
   ///
   /// `constructor` is a function that constructs a new `TService` type and receives an instance of this `ServiceProvider`, so you can get registered dependencies
@@ -69,7 +72,13 @@ class ServiceProvider {
       throw ServiceAlreadyRegisteredException(serviceKey: serviceKey, asSingleton: _factoryRegistry[serviceKey]!.isSingleton);
     }
 
-    _factoryRegistry[serviceKey] = _ServiceFactory(constructor, isSingleton);
+    final override = _overrideFactoryRegistry[serviceKey];
+
+    if (override == null) {
+      _factoryRegistry[serviceKey] = _ServiceFactory(constructor, isSingleton);
+    } else {
+      _factoryRegistry[serviceKey] = _ServiceFactory<TService>(override as InjectorDelegate<TService>, isSingleton);
+    }
   }
 
   // Unregister a previous registered service, if it exists.
@@ -106,7 +115,8 @@ class ServiceProvider {
     final registration = _factoryRegistry[serviceKey];
 
     if (registration == null) {
-      throw ServiceNotRegisteredException(serviceKey: serviceKey);
+      _overrideFactoryRegistry[serviceKey] = constructor;
+      return;
     }
 
     unregister<TService>(key: key);

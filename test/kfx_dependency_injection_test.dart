@@ -47,10 +47,11 @@ void main() {
 
   test("Overrides must work", () {
     ServiceProvider.instance.registerTransient((serviceProvider, platformInfo) => _TestClass(), key: "1");
-    ServiceProvider.instance.registerTransient((serviceProvider, platformInfo) => _TestClass(), key: "2");
 
     ServiceProvider.instance.override<_TestClass>((serviceProvider, platformInfo) => _MockTestClass(value: 11), key: "1");
     ServiceProvider.instance.override<_TestClass>((serviceProvider, platformInfo) => _MockTestClass(value: 22), key: "2");
+
+    ServiceProvider.instance.registerTransient((serviceProvider, platformInfo) => _TestClass(), key: "2");
 
     final tc1 = ServiceProvider.instance.getRequiredService<_TestClass>(key: "1");
     final tc2 = ServiceProvider.instance.getRequiredService<_TestClass>(key: "2");
