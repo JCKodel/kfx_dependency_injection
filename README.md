@@ -12,8 +12,10 @@ It also works as a service locator (when you have an abstract/interface definiti
 ## Features
 
 1) Allows registration of transient and singleton dependencies
-2) 100% code coverage on unit tests
-3) Covers misconfigurated lint options (such as using generic methods without providing generic types)
+2) Covers misconfigurated lint options (such as using generic methods without providing generic types)
+3) The injector has a `PlatformInfo` available, so you can decide what to inject based on media (web, desktop or mobile) and host (window, linux, macos, android or ios)
+4) Flutter web safe, including `PlatformInfo`
+5) No external dependencies
 
 ## Usage
 
@@ -31,17 +33,21 @@ So the registration on `main` is something like this:
 
 ```dart
 ServiceProvider.instance.registerSingleton<IAuthenticationService>(
-  (serviceProvider) => FirebaseAuthenticationService(
+  (serviceProvider, platformInfo) => FirebaseAuthenticationService(
     logService: serviceProvider.getService<ILogService>()
   )
 );
 
 ServiceProvider.instance.registerSingleton<ILogService>(
-  (serviceProvider) => DartDeveloperLogService()
+  (serviceProvider, platformInfo) => DartDeveloperLogService(isWeb: platformInfo.platformMedia == PlatformMedia.web)
 );
 ```
 
 Notice that the order of registration doesn't matter, as long as you register all dependencies before using them (a good place is the `main` method, before your app runs).
+
+The `platformInfo` argument is an instance of the `PlatformInfo`, so you can instantly know what kind of media you are using (Flutter Web, Flutter Desktop or Flutter Mobile)
+and the host you are running (Android, iOS, Windows, MacOS or Linux). That info is separated between media and host so you can know when you are running Flutter Web on an
+Android device, for instance (perhaps to choose the appropriate design system (i.e. Material, Apple or Fluent)). In the example above, I could tell my concrete log implementation if we are running Flutter Web or native.
 
 Now, to get your authentication service, with the injected log stuff defined in the registration, you just need to:
 

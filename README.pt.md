@@ -12,9 +12,11 @@ Também funciona como um localizador de serviços (onde você tem uma definiçã
 
 ## Recursos
 
-1) Premite o registro de dependências transientes e singleton
-2) 100% de cobertura de código em testes de unidade
-3) Cobre configuração incorreta das opções lint (como utilizar métodos genéricos sem prover um tipo genérico)
+1) Permite o registro de dependencias transientes e singleton
+2) Cobre má configuração das opções do analizador lingüístico (tal como usar metodos com argumentos genéricos sem prover um tipo genérico)
+3) O injetor tem um `PlatformInfo` disponível, para que você possa decidir o que injetar baseado na mídia (web, desktop ou mobile) e no host (window, linux, macos, android ou ios)
+4) Seguro para uso com Flutter web, incluindo `PlatformInfo`
+5) Sem dependências externas
 
 ## Uso
 
@@ -32,17 +34,20 @@ Então, o registro no `main` é algo assim:
 
 ```dart
 ServiceProvider.instance.registerSingleton<IAuthenticationService>(
-  (serviceProvider) => FirebaseAuthenticationService(
+  (serviceProvider, platformInfo) => FirebaseAuthenticationService(
     logService: serviceProvider.getService<ILogService>()
   )
 );
 
 ServiceProvider.instance.registerSingleton<ILogService>(
-  (serviceProvider) => DartDeveloperLogService()
+  (serviceProvider, platformInfo) => DartDeveloperLogService(isWeb: platformInfo.platformMedia == PlatformMedia.web)
 );
 ```
 
 Note que a oredem de registro não importa, desde que você registre todas as dependências antes de utilizá-las (um bom lugar seria o método `main`, antes da tua app rodar).
+
+O argumento `platformInfo` é uma instância de `PlatformInfo`, para que você possa instantaneamente saber que tipo de mídia você está usando (Flutter Web, Flutter Desktop ou Flutter Mobile)
+e o host que você está rodando (Android, iOS, Windows, MacOS or Linux). Esta informação é separada entre mídia e host para que você possa saber quando está rodando Flutter Web em um celular Android, por exemplo (talvez para escolher o sistema de design apropriado (i.e.: Material, Apple ou Fluent). No exemplo acima, eu pude dizer à minha implementação concreta de log se eu estou rodando no Flutter Web ou nativo.
 
 Agora, para obter teu serviço de autenticação, com as coisas de log definidas no registro injetadas, você só precisa de:
 

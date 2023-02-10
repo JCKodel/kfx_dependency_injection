@@ -1,6 +1,9 @@
+// ignore_for_file: invalid_use_of_protected_member
+
+import 'platform_info.dart';
 import 'service_already_registered_exception.dart';
-import 'service_not_registered_exception.dart';
 import 'service_invalid_inference_exception.dart';
+import 'service_not_registered_exception.dart';
 
 /// Defines a mechanism for retrieving a service object; that is, an object that provides custom support to other objects.
 ///
@@ -16,10 +19,10 @@ import 'service_invalid_inference_exception.dart';
 class ServiceProvider {
   ServiceProvider._();
 
-  static ServiceProvider? _instance;
+  static ServiceProvider _instance = ServiceProvider._();
 
   /// Returns the singleton instance of the `ServiceProvider`
-  static ServiceProvider get instance => _instance ?? (_instance = ServiceProvider._());
+  static ServiceProvider get instance => _instance;
 
   // ignore: strict_raw_type
   final _factoryRegistry = <String, _ServiceFactory>{};
@@ -36,7 +39,7 @@ class ServiceProvider {
   /// Throws `ServiceAlreadyRegisteredException` if the service is already registered as singleton or transient
   ///
   /// Throws `ServiceInvalidInferenceException` if you forget to specify `TService`
-  void registerSingleton<TService>(TService Function(ServiceProvider serviceProvider) constructor, {String? key}) {
+  void registerSingleton<TService>(TService Function(ServiceProvider serviceProvider, PlatformInfo platformInfo) constructor, {String? key}) {
     _registerService(constructor, key, true);
   }
 
@@ -52,11 +55,11 @@ class ServiceProvider {
   /// Throws `ServiceAlreadyRegisteredException` if the service is already registered as singleton or transient
   ///
   /// Throws `ServiceInvalidInferenceException` if you forget to specify `TService`
-  void registerTransient<TService>(TService Function(ServiceProvider serviceProvider) constructor, {String? key}) {
+  void registerTransient<TService>(TService Function(ServiceProvider serviceProvider, PlatformInfo platformInfo) constructor, {String? key}) {
     _registerService(constructor, key, false);
   }
 
-  void _registerService<TService>(TService Function(ServiceProvider serviceProvider) constructor, String? key, bool isSingleton) {
+  void _registerService<TService>(TService Function(ServiceProvider serviceProvider, PlatformInfo platformInfo) constructor, String? key, bool isSingleton) {
     final serviceKey = _getServiceKey<TService>(key);
 
     if (_factoryRegistry.containsKey(serviceKey)) {
@@ -139,31 +142,31 @@ class ServiceProvider {
 
     return service;
   }
-}
 
-String _getServiceKey<TService>(String? key) {
-  final serviceKey = TService.toString();
-  final serviceKeyLower = serviceKey.toLowerCase();
+  static String _getServiceKey<TService>(String? key) {
+    final serviceKey = TService.toString();
+    final serviceKeyLower = serviceKey.toLowerCase();
 
-  if (serviceKeyLower == "dynamic" || serviceKeyLower == "null" || serviceKeyLower == "void") {
-    throw ServiceInvalidInferenceException(key: key);
+    if (serviceKeyLower == "dynamic" || serviceKeyLower == "null" || serviceKeyLower == "void") {
+      throw ServiceInvalidInferenceException(key: key);
+    }
+
+    return key == null ? TService.toString() : "${TService}:${key}";
   }
-
-  return key == null ? TService.toString() : "${TService}:${key}";
 }
 
 class _ServiceFactory<TService> {
   _ServiceFactory(this.constructor, this.isSingleton);
 
-  final TService Function(ServiceProvider serviceProvider) constructor;
+  final TService Function(ServiceProvider serviceProvider, PlatformInfo platformInfo) constructor;
   final bool isSingleton;
 
   TService? _instance;
   TService get instance {
     if (isSingleton) {
-      return _instance ?? (_instance = constructor(ServiceProvider.instance));
+      return _instance ?? (_instance = constructor(ServiceProvider.instance, PlatformInfo.platformInfo));
     }
 
-    return constructor(ServiceProvider.instance);
+    return constructor(ServiceProvider.instance, PlatformInfo.platformInfo);
   }
 }

@@ -14,6 +14,6 @@
 
 * Added portuguese documentation as well as some fixes in the English README.md version
 
-# 1.0.0+4
+## 1.0.0+4
 
-* Upgrade Dart requirements to reflect the up-to-date pub.dev analysis.
+* Add platform info to `ServiceProvider` so injected classes can be chosen by platform as well
