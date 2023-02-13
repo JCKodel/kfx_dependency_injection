@@ -22,7 +22,7 @@ typedef InjectorDelegate<TService> = TService Function(ServiceProvider servicePr
 class ServiceProvider {
   ServiceProvider._();
 
-  static ServiceProvider _instance = ServiceProvider._();
+  static final ServiceProvider _instance = ServiceProvider._();
 
   /// Returns the singleton instance of the `ServiceProvider`
   static ServiceProvider get instance => _instance;
