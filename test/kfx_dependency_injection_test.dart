@@ -27,6 +27,8 @@ void _expectException<TException extends Exception>(void Function() method, Stri
 }
 
 void main() {
+  tearDown(() => ServiceProvider.instance.unregisterAll());
+
   test("Registered transient services must be transient", () {
     ServiceProvider.instance.registerTransient((serviceProvider, platformInfo) => _TestClass(), key: "1");
     ServiceProvider.instance.registerTransient((serviceProvider, platformInfo) => _TestClass(), key: "2");
@@ -41,8 +43,6 @@ void main() {
     expect(tc2.value, 2);
     expect(ServiceProvider.instance.getRequiredService<_TestClass>(key: "1").value, 0);
     expect(ServiceProvider.instance.getRequiredService<_TestClass>(key: "2").value, 0);
-
-    ServiceProvider.instance.unregisterAll();
   });
 
   test("Overrides must work", () {
@@ -63,8 +63,6 @@ void main() {
     tc1.value = 33;
 
     expect(ServiceProvider.instance.getRequiredService<_TestClass>(key: "2").value, 22);
-
-    ServiceProvider.instance.unregisterAll();
   });
 
   test("Registered singleton services must be singleton", () {
@@ -83,8 +81,6 @@ void main() {
     expect(ServiceProvider.instance.getRequiredService<_TestClass>(key: "2").value, 2);
     tc2.value = 4;
     expect(ServiceProvider.instance.getRequiredService<_TestClass>(key: "2").value, 4);
-
-    ServiceProvider.instance.unregisterAll();
   });
 
   test("Unallow duplicate registration", () {
@@ -112,8 +108,6 @@ void main() {
       },
       "The service _TestClass was already registered as a singleton service",
     );
-
-    ServiceProvider.instance.unregisterAll();
   });
 
   test("Registration tests", () {
@@ -123,8 +117,6 @@ void main() {
     expect(ServiceProvider.instance.isRegistered<_TestClass>(key: "1"), true);
     expect(ServiceProvider.instance.isRegistered<_TestClass>(), true);
     expect(ServiceProvider.instance.isRegistered<_TestClass>(key: "2"), false);
-
-    ServiceProvider.instance.unregisterAll();
   });
 
   test("Required services validation", () {
@@ -152,8 +144,6 @@ void main() {
       },
       "The service _TestClass:3 was not registered",
     );
-
-    ServiceProvider.instance.unregisterAll();
   });
 
   test("Services unregistrations", () {
@@ -222,7 +212,5 @@ void main() {
       },
       "The service with key 1 was used without specifying the TService generic argument, so I don't know what type to return",
     );
-
-    ServiceProvider.instance.unregisterAll();
   });
 }
