@@ -32,3 +32,7 @@
 * Breaking change: write methods (i.e.: `registerTransient`) no longer requires `ServiceProvider.instance` (they are now static methods)
 * Breaking change: During registration, a `IServiceProvider` is available only with query methods (`isRegistered`, `getService` and `getRequiredService`)
 * Breaking change: to avoid conflict with the `@override` attribute, the `override` method was renamed to `replace`
+
+## 1.3.1
+
+* Added `registerSingletonIfNotRegistered` and `registerTransientIfNotRegistered` to avoid throwing exceptions and making registration idempotent

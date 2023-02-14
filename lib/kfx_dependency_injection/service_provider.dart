@@ -90,6 +90,24 @@ class ServiceProvider implements IServiceProvider {
     _registerService(constructor, key, true);
   }
 
+  /// Register a constructor as a singleton service (i.e.: the `TService` will always point to the same instance), if none is registered yet
+  ///
+  /// `constructor` is a function that constructs a new `TService` type and receives an instance of this `ServiceProvider`, so you can get registered dependencies
+  /// using the `getService` and `getRequiredService` methods.
+  ///
+  /// `key` must be provided when a `TService` is ambiguous (for example, when you have two classes with the same name in your project, you need to differentiate
+  /// those because Dart has no namesace or library indication on its types, so a clas named User in a package has the same identifier as a class User in another
+  /// package) Basically, types are identifier by their single name (`Type.toString()`)
+  ///
+  /// Throws `ServiceInvalidInferenceException` if you forget to specify `TService`
+  static void registerSingletonIfNotRegistered<TService>(InjectorDelegate<TService> constructor, {String? key}) {
+    if (instance.isRegistered<TService>(key: key)) {
+      return;
+    }
+
+    registerSingleton(constructor, key: key);
+  }
+
   /// Register a constructor as a transient service (i.e.: the `TService` will be created each time the ServiceProvider requires it)
   ///
   /// `constructor` is a function that constructs a new `TService` type and receives an instance of this `ServiceProvider`, so you can get registered dependencies
@@ -104,6 +122,14 @@ class ServiceProvider implements IServiceProvider {
   /// Throws `ServiceInvalidInferenceException` if you forget to specify `TService`
   static void registerTransient<TService>(InjectorDelegate<TService> constructor, {String? key}) {
     _registerService(constructor, key, false);
+  }
+
+  static void registerTransientIfNotRegistered<TService>(InjectorDelegate<TService> constructor, {String? key}) {
+    if (instance.isRegistered<TService>(key: key)) {
+      return;
+    }
+
+    registerTransient(constructor, key: key);
   }
 
   static void _registerService<TService>(InjectorDelegate<TService> constructor, String? key, bool isSingleton) {

@@ -110,6 +110,16 @@ void main() {
     );
   });
 
+  test("Ignore duplicate registration", () {
+    ServiceProvider.registerTransient((serviceProvider, platformInfo) => _TestClass());
+
+    expect(ServiceProvider.instance.getRequiredService<_TestClass>().value, 0);
+
+    ServiceProvider.registerTransientIfNotRegistered((serviceProvider, platformInfo) => _MockTestClass(value: 2));
+
+    expect(ServiceProvider.instance.getRequiredService<_TestClass>().value, 0);
+  });
+
   test("Registration tests", () {
     ServiceProvider.registerTransient((serviceProvider, platformInfo) => _TestClass(), key: "1");
     ServiceProvider.registerTransient((serviceProvider, platformInfo) => _TestClass());
