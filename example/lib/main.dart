@@ -5,12 +5,12 @@ import 'package:kfx_dependency_injection/kfx_dependency_injection/service_provid
 
 void main() {
   // Register a class that receives an injection of a dependency
-  ServiceProvider.instance.registerTransient<MainApp>(
+  ServiceProvider.registerTransient<MainApp>(
     (sp, p) => MainApp(helloWorldProvider: sp.getRequiredService<IHelloWorldProvider>()),
   );
 
   // Register a concrete class that will implement a service `IHelloWorldProvider` to be injected when needed
-  ServiceProvider.instance.registerSingleton<IHelloWorldProvider>(
+  ServiceProvider.registerSingleton<IHelloWorldProvider>(
     (sp, p) => EnglishHelloWorldProvider(platformInfo: p),
   );
 

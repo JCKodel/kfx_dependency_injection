@@ -27,11 +27,11 @@ void _expectException<TException extends Exception>(void Function() method, Stri
 }
 
 void main() {
-  tearDown(() => ServiceProvider.instance.unregisterAll());
+  tearDown(() => ServiceProvider.unregisterAll());
 
   test("Registered transient services must be transient", () {
-    ServiceProvider.instance.registerTransient((serviceProvider, platformInfo) => _TestClass(), key: "1");
-    ServiceProvider.instance.registerTransient((serviceProvider, platformInfo) => _TestClass(), key: "2");
+    ServiceProvider.registerTransient((serviceProvider, platformInfo) => _TestClass(), key: "1");
+    ServiceProvider.registerTransient((serviceProvider, platformInfo) => _TestClass(), key: "2");
 
     final tc1 = ServiceProvider.instance.getRequiredService<_TestClass>(key: "1");
     final tc2 = ServiceProvider.instance.getRequiredService<_TestClass>(key: "2");
@@ -46,12 +46,12 @@ void main() {
   });
 
   test("Overrides must work", () {
-    ServiceProvider.instance.registerTransient((serviceProvider, platformInfo) => _TestClass(), key: "1");
+    ServiceProvider.registerTransient((serviceProvider, platformInfo) => _TestClass(), key: "1");
 
-    ServiceProvider.instance.override<_TestClass>((serviceProvider, platformInfo) => _MockTestClass(value: 11), key: "1");
-    ServiceProvider.instance.override<_TestClass>((serviceProvider, platformInfo) => _MockTestClass(value: 22), key: "2");
+    ServiceProvider.replace<_TestClass>((serviceProvider, platformInfo) => _MockTestClass(value: 11), key: "1");
+    ServiceProvider.replace<_TestClass>((serviceProvider, platformInfo) => _MockTestClass(value: 22), key: "2");
 
-    ServiceProvider.instance.registerTransient((serviceProvider, platformInfo) => _TestClass(), key: "2");
+    ServiceProvider.registerTransient((serviceProvider, platformInfo) => _TestClass(), key: "2");
 
     final tc1 = ServiceProvider.instance.getRequiredService<_TestClass>(key: "1");
     final tc2 = ServiceProvider.instance.getRequiredService<_TestClass>(key: "2");
@@ -66,8 +66,8 @@ void main() {
   });
 
   test("Registered singleton services must be singleton", () {
-    ServiceProvider.instance.registerSingleton((serviceProvider, platformInfo) => _TestClass(), key: "1");
-    ServiceProvider.instance.registerSingleton((serviceProvider, platformInfo) => _TestClass(), key: "2");
+    ServiceProvider.registerSingleton((serviceProvider, platformInfo) => _TestClass(), key: "1");
+    ServiceProvider.registerSingleton((serviceProvider, platformInfo) => _TestClass(), key: "2");
 
     final tc1 = ServiceProvider.instance.getRequiredService<_TestClass>(key: "1");
     final tc2 = ServiceProvider.instance.getRequiredService<_TestClass>(key: "2");
@@ -86,33 +86,33 @@ void main() {
   test("Unallow duplicate registration", () {
     _expectException<ServiceAlreadyRegisteredException>(
       () {
-        ServiceProvider.instance.registerTransient<_TestClass>((serviceProvider, platformInfo) => _TestClass());
-        ServiceProvider.instance.registerTransient<_TestClass>((serviceProvider, platformInfo) => _TestClass());
+        ServiceProvider.registerTransient<_TestClass>((serviceProvider, platformInfo) => _TestClass());
+        ServiceProvider.registerTransient<_TestClass>((serviceProvider, platformInfo) => _TestClass());
       },
       "The service _TestClass was already registered as a transactional service",
     );
 
-    ServiceProvider.instance.unregisterAll();
+    ServiceProvider.unregisterAll();
 
     _expectException<ServiceAlreadyRegisteredException>(
       () {
-        ServiceProvider.instance.registerSingleton<_TestClass>((serviceProvider, platformInfo) => _TestClass());
-        ServiceProvider.instance.registerSingleton<_TestClass>((serviceProvider, platformInfo) => _TestClass());
+        ServiceProvider.registerSingleton<_TestClass>((serviceProvider, platformInfo) => _TestClass());
+        ServiceProvider.registerSingleton<_TestClass>((serviceProvider, platformInfo) => _TestClass());
       },
       "The service _TestClass was already registered as a singleton service",
     );
 
     _expectException<ServiceAlreadyRegisteredException>(
       () {
-        ServiceProvider.instance.registerTransient<_TestClass>((serviceProvider, platformInfo) => _TestClass());
+        ServiceProvider.registerTransient<_TestClass>((serviceProvider, platformInfo) => _TestClass());
       },
       "The service _TestClass was already registered as a singleton service",
     );
   });
 
   test("Registration tests", () {
-    ServiceProvider.instance.registerTransient((serviceProvider, platformInfo) => _TestClass(), key: "1");
-    ServiceProvider.instance.registerTransient((serviceProvider, platformInfo) => _TestClass());
+    ServiceProvider.registerTransient((serviceProvider, platformInfo) => _TestClass(), key: "1");
+    ServiceProvider.registerTransient((serviceProvider, platformInfo) => _TestClass());
 
     expect(ServiceProvider.instance.isRegistered<_TestClass>(key: "1"), true);
     expect(ServiceProvider.instance.isRegistered<_TestClass>(), true);
@@ -120,8 +120,8 @@ void main() {
   });
 
   test("Required services validation", () {
-    ServiceProvider.instance.registerTransient((serviceProvider, platformInfo) => _TestClass(), key: "1");
-    ServiceProvider.instance.registerTransient((serviceProvider, platformInfo) => _TestClass());
+    ServiceProvider.registerTransient((serviceProvider, platformInfo) => _TestClass(), key: "1");
+    ServiceProvider.registerTransient((serviceProvider, platformInfo) => _TestClass());
 
     final tc1 = ServiceProvider.instance.getRequiredService<_TestClass>(key: "1");
     final tc = ServiceProvider.instance.getRequiredService<_TestClass>();
@@ -147,40 +147,40 @@ void main() {
   });
 
   test("Services unregistrations", () {
-    ServiceProvider.instance.registerTransient((serviceProvider, platformInfo) => _TestClass());
-    ServiceProvider.instance.registerTransient((serviceProvider, platformInfo) => _TestClass(), key: "1");
+    ServiceProvider.registerTransient((serviceProvider, platformInfo) => _TestClass());
+    ServiceProvider.registerTransient((serviceProvider, platformInfo) => _TestClass(), key: "1");
 
     expect(ServiceProvider.instance.getService<_TestClass>()!.value, 0);
     expect(ServiceProvider.instance.getService<_TestClass>(key: "1")!.value, 0);
 
-    ServiceProvider.instance.unregister<_TestClass>();
+    ServiceProvider.unregister<_TestClass>();
 
     expect(ServiceProvider.instance.getService<_TestClass>(), null);
     expect(ServiceProvider.instance.getService<_TestClass>(key: "1")!.value, 0);
 
-    ServiceProvider.instance.registerTransient((serviceProvider, platformInfo) => _TestClass());
-    ServiceProvider.instance.unregister<_TestClass>(key: "1");
+    ServiceProvider.registerTransient((serviceProvider, platformInfo) => _TestClass());
+    ServiceProvider.unregister<_TestClass>(key: "1");
 
     expect(ServiceProvider.instance.getService<_TestClass>()!.value, 0);
     expect(ServiceProvider.instance.getService<_TestClass>(key: "1"), null);
 
-    ServiceProvider.instance.unregisterAll();
+    ServiceProvider.unregisterAll();
 
     _expectException<ServiceNotRegisteredException>(
       () {
-        ServiceProvider.instance.unregister<_TestClass>(throwsExceptionIfNotRegistered: true);
+        ServiceProvider.unregister<_TestClass>(throwsExceptionIfNotRegistered: true);
       },
       "The service _TestClass was not registered",
     );
   });
 
   test("Service without generic argument", () {
-    ServiceProvider.instance.registerSingleton((serviceProvider, platformInfo) => _TestClass());
-    ServiceProvider.instance.registerSingleton((serviceProvider, platformInfo) => _TestClass(), key: "1");
+    ServiceProvider.registerSingleton((serviceProvider, platformInfo) => _TestClass());
+    ServiceProvider.registerSingleton((serviceProvider, platformInfo) => _TestClass(), key: "1");
 
     _expectException<ServiceInvalidInferenceException>(
       () {
-        ServiceProvider.instance.registerSingleton((serviceProvider, platformInfo) => null);
+        ServiceProvider.registerSingleton((serviceProvider, platformInfo) => null);
       },
       "The service with key null was used without specifying the TService generic argument, so I don't know what type to return",
     );
@@ -201,14 +201,14 @@ void main() {
 
     _expectException<ServiceInvalidInferenceException>(
       () {
-        ServiceProvider.instance.unregister();
+        ServiceProvider.unregister();
       },
       "The service with key null was used without specifying the TService generic argument, so I don't know what type to return",
     );
 
     _expectException<ServiceInvalidInferenceException>(
       () {
-        ServiceProvider.instance.unregister(key: "1");
+        ServiceProvider.unregister(key: "1");
       },
       "The service with key 1 was used without specifying the TService generic argument, so I don't know what type to return",
     );

@@ -25,3 +25,10 @@
 ## 1.2.0
 
 * Allows override of registrations even before the registrations take place
+
+## 1.3.0
+
+* Refactoring to separate write/query methods from `ServiceProvider`
+* Breaking change: write methods (i.e.: `registerTransient`) no longer requires `ServiceProvider.instance` (they are now static methods)
+* Breaking change: During registration, a `IServiceProvider` is available only with query methods (`isRegistered`, `getService` and `getRequiredService`)
+* Breaking change: to avoid conflict with the `@override` attribute, the `override` method was renamed to `replace`

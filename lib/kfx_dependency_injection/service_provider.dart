@@ -1,4 +1,4 @@
-// ignore_for_file: invalid_use_of_protected_member
+import 'package:flutter/foundation.dart';
 
 import 'i_platform_info.dart';
 import 'platform_info.dart';
@@ -6,7 +6,7 @@ import 'service_already_registered_exception.dart';
 import 'service_invalid_inference_exception.dart';
 import 'service_not_registered_exception.dart';
 
-typedef InjectorDelegate<TService> = TService Function(ServiceProvider serviceProvider, IPlatformInfo platformInfo);
+typedef InjectorDelegate<TService> = TService Function(IServiceProvider serviceProvider, IPlatformInfo platformInfo);
 
 /// Defines a mechanism for retrieving a service object; that is, an object that provides custom support to other objects.
 ///
@@ -19,19 +19,60 @@ typedef InjectorDelegate<TService> = TService Function(ServiceProvider servicePr
 /// ServiceProvider.instance.registerSingleton<SingletonService>((sp) => SingletonService(sp.getRequiredService<TransientService>()));
 /// ServiceProvider.instance.registerTransient<TransientService>((sp) => TransientService());
 /// ```
-class ServiceProvider {
+@immutable
+abstract class IServiceProvider {
+  /// Returns `true` if the service `TService` is registered with the specified `key`.
+  ///
+  /// Throws `ServiceInvalidInferenceException` if you forget to specify `TService`
+  bool isRegistered<TService>({String? key});
+
+  /// Returns a registered `TService`. If `TService` was not registered, returns null.
+  ///
+  /// `key` must be provided when a `TService` is ambiguous and it was registered with a non null key (see `registerSingleton` and
+  /// `registerTransient` methods to know more about the `key` argument)
+  ///
+  /// The instance of `TService` will be a singleton if it was registered as such (meaning: only the same instance is always returned)
+  ///
+  /// Throws `ServiceInvalidInferenceException` if you forget to specify `TService`
+  TService? getService<TService>({String? key});
+
+  /// Returns a registered `TService`. If `TService` was not registered, returns a `ServiceNotRegisteredException`.
+  ///
+  /// `key` must be provided when a `TService` is ambiguous and it was registered with a non null key (see `registerSingleton` and
+  /// `registerTransient` methods to know more about the `key` argument)
+  ///
+  /// The instance of `TService` will be a singleton if it was registered as such (meaning: only the same instance is always returned)
+  ///
+  /// Throws a `ServiceNotRegisteredException` if the service with the specified key was not registered
+  ///
+  /// Throws `ServiceInvalidInferenceException` if you forget to specify `TService`
+  TService getRequiredService<TService>({String? key});
+}
+
+/// Defines a mechanism for retrieving a service object; that is, an object that provides custom support to other objects.
+///
+/// To use it, register your services using the `registerSingleton` and `registerTransient` methods before your app starts.
+/// Those methods accepts a function that receives the `ServiceProvider`, so you can inject the services into those constructors.
+///
+/// Example:
+///
+/// ```dart
+/// ServiceProvider.instance.registerSingleton<SingletonService>((sp) => SingletonService(sp.getRequiredService<TransientService>()));
+/// ServiceProvider.instance.registerTransient<TransientService>((sp) => TransientService());
+/// ```
+class ServiceProvider implements IServiceProvider {
   ServiceProvider._();
 
-  static final ServiceProvider _instance = ServiceProvider._();
+  static final IServiceProvider _instance = ServiceProvider._();
 
-  /// Returns the singleton instance of the `ServiceProvider`
-  static ServiceProvider get instance => _instance;
-
-  // ignore: strict_raw_type
-  final _factoryRegistry = <String, _ServiceFactory>{};
+  /// Provides the default `ServiceProvider` instance to allow you to use the methods `getService` and `getRequiredService` anywhere.
+  static IServiceProvider get instance => _instance;
 
   // ignore: strict_raw_type
-  final _overrideFactoryRegistry = <String, Object>{};
+  static final _factoryRegistry = <String, _ServiceFactory>{};
+
+  // ignore: strict_raw_type
+  static final _overrideFactoryRegistry = <String, Object>{};
 
   /// Register a constructor as a singleton service (i.e.: the `TService` will always point to the same instance)
   ///
@@ -45,7 +86,7 @@ class ServiceProvider {
   /// Throws `ServiceAlreadyRegisteredException` if the service is already registered as singleton or transient
   ///
   /// Throws `ServiceInvalidInferenceException` if you forget to specify `TService`
-  void registerSingleton<TService>(InjectorDelegate<TService> constructor, {String? key}) {
+  static void registerSingleton<TService>(InjectorDelegate<TService> constructor, {String? key}) {
     _registerService(constructor, key, true);
   }
 
@@ -61,11 +102,11 @@ class ServiceProvider {
   /// Throws `ServiceAlreadyRegisteredException` if the service is already registered as singleton or transient
   ///
   /// Throws `ServiceInvalidInferenceException` if you forget to specify `TService`
-  void registerTransient<TService>(InjectorDelegate<TService> constructor, {String? key}) {
+  static void registerTransient<TService>(InjectorDelegate<TService> constructor, {String? key}) {
     _registerService(constructor, key, false);
   }
 
-  void _registerService<TService>(InjectorDelegate<TService> constructor, String? key, bool isSingleton) {
+  static void _registerService<TService>(InjectorDelegate<TService> constructor, String? key, bool isSingleton) {
     final serviceKey = _getServiceKey<TService>(key);
 
     if (_factoryRegistry.containsKey(serviceKey)) {
@@ -90,7 +131,7 @@ class ServiceProvider {
   /// when `true` or just ignores non registered services if `false` (the default behaviour)
   ///
   /// Throws `ServiceInvalidInferenceException` if you forget to specify `TService`
-  void unregister<TService>({String? key, bool throwsExceptionIfNotRegistered = false}) {
+  static void unregister<TService>({String? key, bool throwsExceptionIfNotRegistered = false}) {
     final serviceKey = _getServiceKey<TService>(key);
 
     if (throwsExceptionIfNotRegistered) {
@@ -103,14 +144,14 @@ class ServiceProvider {
   }
 
   /// Unregister all registered services (this is usefull, for instance, in test environments)
-  void unregisterAll() {
+  static void unregisterAll() {
     _factoryRegistry.clear();
   }
 
-  /// Overrides a previous registration (for example, to mock concrete implementations in unit tests)
+  /// Replaces a previous registration (for example, to mock concrete implementations in unit tests)
   ///
-  /// The override is registered as singleton or transient depending on the original registration, and that registration must exist
-  void override<TService>(InjectorDelegate<TService> constructor, {String? key}) {
+  /// The replace is registered as singleton or transient depending on the original registration, and that registration must exist
+  static void replace<TService>(InjectorDelegate<TService> constructor, {String? key}) {
     final serviceKey = _getServiceKey<TService>(key);
     final registration = _factoryRegistry[serviceKey];
 
@@ -131,6 +172,7 @@ class ServiceProvider {
   /// Returns `true` if the service `TService` is registered with the specified `key`.
   ///
   /// Throws `ServiceInvalidInferenceException` if you forget to specify `TService`
+  @override
   bool isRegistered<TService>({String? key}) {
     final serviceKey = _getServiceKey<TService>(key);
 
@@ -145,6 +187,7 @@ class ServiceProvider {
   /// The instance of `TService` will be a singleton if it was registered as such (meaning: only the same instance is always returned)
   ///
   /// Throws `ServiceInvalidInferenceException` if you forget to specify `TService`
+  @override
   TService? getService<TService>({String? key}) {
     final serviceKey = _getServiceKey<TService>(key);
     final serviceFactory = _factoryRegistry[serviceKey];
@@ -166,6 +209,7 @@ class ServiceProvider {
   /// Throws a `ServiceNotRegisteredException` if the service with the specified key was not registered
   ///
   /// Throws `ServiceInvalidInferenceException` if you forget to specify `TService`
+  @override
   TService getRequiredService<TService>({String? key}) {
     final service = getService<TService>(key: key);
 
@@ -197,9 +241,11 @@ class _ServiceFactory<TService> {
   TService? _instance;
   TService get instance {
     if (isSingleton) {
+      // ignore: invalid_use_of_protected_member
       return _instance ?? (_instance = constructor(ServiceProvider.instance, PlatformInfo.platformInfo));
     }
 
+    // ignore: invalid_use_of_protected_member
     return constructor(ServiceProvider.instance, PlatformInfo.platformInfo);
   }
 }
