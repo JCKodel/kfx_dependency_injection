@@ -12,7 +12,7 @@ It also works as a service locator (when you have an abstract/interface definiti
 ## Features
 
 1) Allows registration of transient and singleton dependencies
-2) Covers misconfigurated lint options (such as using generic methods without providing generic types)
+2) Covers misconfigured lint options (such as using generic methods without providing generic types)
 3) The injector has a `PlatformInfo` available, so you can decide what to inject based on media (web, desktop or mobile) and host (window, linux, macos, android or ios)
 4) Flutter web safe, including `PlatformInfo`
 5) No external dependencies
@@ -46,7 +46,7 @@ ServiceProvider.instance.registerSingleton<ILogService>(
 Notice that the order of registration doesn't matter, as long as you register all dependencies before using them (a good place is the `main` method, before your app runs).
 
 The `platformInfo` argument is an instance of the `PlatformInfo`, so you can instantly know what kind of media you are using (Flutter Web, Flutter Desktop or Flutter Mobile)
-and the host you are running (Android, iOS, Windows, MacOS or Linux). That info is separated between media and host so you can know when you are running Flutter Web on an
+and the host you are running (Android, iOS, Windows, MacOS or Linux). That info is separated between media and host, so you can know when you are running Flutter Web on an
 Android device, for instance (perhaps to choose the appropriate design system (i.e. Material, Apple or Fluent)). In the example above, I could tell my concrete log implementation if we are running Flutter Web or native.
 
 Now, to get your authentication service, with the injected log stuff defined in the registration, you just need to:
@@ -55,7 +55,7 @@ Now, to get your authentication service, with the injected log stuff defined in 
 final authenticationService = ServiceProvider.instance.getRequiredService<IAuthenticationService>();
 ```
 
-And that's it. You don't need to know the concrete implementation nor know what kind of log is being used (or if it even exist).
+And that's it. You don't need to know the concrete implementation nor know what kind of log is being used (or if it even exists).
 
 ### Singleton vs Transient
 
@@ -71,7 +71,7 @@ The difference between those methods is that `getService` can return `null` if t
 
 After registering a type, you can override it using `ServiceProvider.instance.override<TService>((serviceProvider, platformInfo) => MockClass(), key: "some key")`.
 
-This is usefull when you use some remote API service registered on your app, but want to mock that service in unit tests. In this case, the app remains as it is (no change
+This is useful when you use some remote API service registered on your app, but want to mock that service in unit tests. In this case, the app remains as it is (no change
 is required). In your unit test, you override the registration of your api calls to some mock class and you're done.
 
 That override can take place before or after the normal registration (i.e.: you can override before instantiating your app and registering your types or after that, it
@@ -79,8 +79,8 @@ doesn't matter)
 
 ## Additional information
 
-There are some methods to check if a type is registered (`isRegistered<T>()`) and methods to allow unregistration (this is usefull to release singleton instances or
-in unit tests to cleanup the `ServiceProvider` manager).
+There are some methods to check if a type is registered (`isRegistered<T>()`) and methods to allow unregistration (this is useful to release singleton instances or
+in unit tests to clean up the `ServiceProvider` manager).
 
 Since Dart is uncapable of returning unique type names, all methods in `ServiceProvider` accepts a key, which will be used to differentiate types.
 
@@ -88,7 +88,7 @@ For instance: the `firebase_authentication` package contains an `User` class. It
 with that Firebase implementation. The problem is that Dart will return `User` in both cases when we ask the name of the type. That's the same reason you have to use
 the `as`, `hide` and `show` keywords during `import` to avoid class and functions names conflicts.
 
-So, if you have two classes with the same name and want to register them (since is not possible to register a type more than once), you can differentiate them using
+So, if you have two classes with the same name and want to register them (since it's not possible to register a type more than once), you can differentiate them using
 the `key` argument:
 
 ```dart
