@@ -13,13 +13,13 @@ It also works as a service locator (when you have an abstract/interface definiti
 
 1) Allows registration of transient and singleton dependencies
 2) Covers misconfigured lint options (such as using generic methods without providing generic types)
-3) The injector has a `PlatformInfo` available, so you can decide what to inject based on media (web, desktop or mobile) and host (window, linux, macos, android or ios)
+3) The injector has a `PlatformInfo` available, so you can decide what to inject based on media (web, desktop or mobile) and host (Windows, Linux, MacOS, Android or iOS)
 4) Flutter web safe, including `PlatformInfo`
 5) No external dependencies
 
 ## Usage
 
-For example, you can define an authentication system as a set of empty common methods (in an abstract class, which is the closest you can get right now of a true
+For example, you can define an authentication system as a set of empty common methods (in an abstract class, which is the closest you can get right now to a true
 interface in Dart). Then, you implement the authentication itself on another class, let's say, using Firebase authentication. Wanna use AWS Incognito? Just reimplement
 that abstract class using Incognito e change the registration to point to it. Done, without breaking changes.
 
@@ -59,8 +59,8 @@ And that's it. You don't need to know the concrete implementation nor know what 
 
 ### Singleton vs Transient
 
-The difference between the registrations are: whenever you call `getService`, `getRequiredService` or something is injected in another constructor, singletons always
-returns the same instance of a class, while transient registrations always returns a new instance of that class (in most cases, you want a singleton).
+The difference between the registrations is: whenever you call `getService`, `getRequiredService` or something is injected in another constructor, singletons always
+returns the same instance of a class, while transient registrations always return a new instance of that class (in most cases, you want a singleton).
 
 ### getService vs getRequiredService
 
@@ -72,7 +72,7 @@ The difference between those methods is that `getService` can return `null` if t
 After registering a type, you can override it using `ServiceProvider.instance.override<TService>((serviceProvider, platformInfo) => MockClass(), key: "some key")`.
 
 This is useful when you use some remote API service registered on your app, but want to mock that service in unit tests. In this case, the app remains as it is (no change
-is required). In your unit test, you override the registration of your api calls to some mock class and you're done.
+is required). In your unit test, you override the registration of your API calls to some mock class and you're done.
 
 That override can take place before or after the normal registration (i.e.: you can override before instantiating your app and registering your types or after that, it
 doesn't matter)
@@ -82,11 +82,11 @@ doesn't matter)
 There are some methods to check if a type is registered (`isRegistered<T>()`) and methods to allow unregistration (this is useful to release singleton instances or
 in unit tests to clean up the `ServiceProvider` manager).
 
-Since Dart is uncapable of returning unique type names, all methods in `ServiceProvider` accepts a key, which will be used to differentiate types.
+Since Dart is incapable of returning unique type names, all methods in `ServiceProvider` accepts a key, which will be used to differentiate types.
 
 For instance: the `firebase_authentication` package contains an `User` class. It's probable that you also have a `User` class in your code, which has nothing to do
-with that Firebase implementation. The problem is that Dart will return `User` in both cases when we ask the name of the type. That's the same reason you have to use
-the `as`, `hide` and `show` keywords during `import` to avoid class and functions names conflicts.
+with that Firebase implementation. The problem is that Dart will return `User` in both cases when we ask for the name of the type. That's the same reason you have to use
+the `as`, `hide` and `show` keywords during `import` to avoid class and function names conflicts.
 
 So, if you have two classes with the same name and want to register them (since it's not possible to register a type more than once), you can differentiate them using
 the `key` argument:
@@ -105,7 +105,7 @@ ServiceProvider.instance.registerSingleton<SomePackage.SomeClass>(
 );
 ```
 
-The second registration must use the `key` argument because the `SomeClass` exists in multiple locations and it was already registered.
+The second registration must use the `key` argument because the `SomeClass` exists in multiple locations and was already registered.
 
 To retrieve each version of the registration, use the same key:
 
@@ -135,7 +135,7 @@ This exception is thrown when you try to register a type with the same `key` (or
 
 ### `ServiceNotRegisteredException`
 
-This exception is thrown by `getRequiredService` when it requires a service that was not registered and also by `unregister` method, if `throwsExceptionIfNotRegistered`
+This exception is thrown by `getRequiredService` when it requires a service that was not registered and also by `unregister` method if `throwsExceptionIfNotRegistered`
 argument is `true` (which is `false` by default).
 
 ### `ServiceInvalidInferenceException`
