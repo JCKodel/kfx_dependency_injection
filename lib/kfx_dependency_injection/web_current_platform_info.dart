@@ -1,9 +1,9 @@
 // ignore: avoid_web_libraries_in_flutter
 import 'dart:html' as html show window;
 
-import 'platform_host.dart';
-import 'platform_info.dart';
-import 'platform_media.dart';
+import 'package:kfx_dependency_injection/kfx_dependency_injection/platform_info.dart';
+
+import '../kfx_dependency_injection.dart';
 
 PlatformInfo getCurrentPlatformInfo() {
   final userAgent = html.window.navigator.userAgent;

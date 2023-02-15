@@ -1,3 +1,5 @@
+part of kfx_dependency_injection;
+
 /// This exception is thrown when you try to get a required service from `ServiceProvider` and the service was not registered.
 ///
 /// To fix, ensure the combination of type and `key` is the same used at registration (using the `registerSingleton` or `registerTransient` methods)

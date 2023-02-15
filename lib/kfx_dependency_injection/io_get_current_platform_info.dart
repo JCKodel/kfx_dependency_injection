@@ -1,8 +1,8 @@
 import 'dart:io';
 
-import 'platform_host.dart';
+import '../kfx_dependency_injection.dart';
+
 import 'platform_info.dart';
-import 'platform_media.dart';
 
 PlatformInfo getCurrentPlatformInfo() {
   if (Platform.isAndroid) {

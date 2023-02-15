@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 
-import 'package:kfx_dependency_injection/kfx_dependency_injection/i_platform_info.dart';
-import 'package:kfx_dependency_injection/kfx_dependency_injection/service_provider.dart';
+import 'package:kfx_dependency_injection/kfx_dependency_injection.dart';
 
 void main() {
   // Register a class that receives an injection of a dependency

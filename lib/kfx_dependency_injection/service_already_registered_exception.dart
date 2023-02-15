@@ -1,3 +1,5 @@
+part of kfx_dependency_injection;
+
 /// This exception is thrown when you try to register a service with the same name twice.
 ///
 /// To fix, ensure the service is unique or use a different key for this one (note that the service name is the service class name, so two classes with the

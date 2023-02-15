@@ -1,5 +1,4 @@
-import 'platform_host.dart';
-import 'platform_media.dart';
+part of kfx_dependency_injection;
 
 abstract class IPlatformInfo {
   const IPlatformInfo({required this.platformMedia, required this.platformHost});

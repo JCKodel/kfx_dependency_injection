@@ -1,3 +1,5 @@
+part of kfx_dependency_injection;
+
 /// After considering `PlatformMedia`, which host is running the app?
 enum PlatformHost {
   /// Android phone or tablet

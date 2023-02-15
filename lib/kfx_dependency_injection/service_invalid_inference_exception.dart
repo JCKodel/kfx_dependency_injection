@@ -1,3 +1,5 @@
+part of kfx_dependency_injection;
+
 /// This exception is thrown when you try to use a service provider method without specifying the `TService` generic argument, so the Service Provider
 /// cannot know what type to return
 ///

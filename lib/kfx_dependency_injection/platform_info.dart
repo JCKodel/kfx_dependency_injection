@@ -1,8 +1,7 @@
 import 'package:flutter/foundation.dart';
 
-import 'i_platform_info.dart';
-import 'platform_host.dart';
-import 'platform_media.dart';
+import '../kfx_dependency_injection.dart';
+
 import 'web_current_platform_info.dart' if (dart.library.io) "io_get_current_platform_info.dart";
 
 /// Holds information about the current platform and host.

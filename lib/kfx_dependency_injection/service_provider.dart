@@ -1,10 +1,4 @@
-import 'package:flutter/foundation.dart';
-
-import 'i_platform_info.dart';
-import 'platform_info.dart';
-import 'service_already_registered_exception.dart';
-import 'service_invalid_inference_exception.dart';
-import 'service_not_registered_exception.dart';
+part of kfx_dependency_injection;
 
 typedef InjectorDelegate<TService> = TService Function(IServiceProvider serviceProvider, IPlatformInfo platformInfo);
 
@@ -61,9 +55,9 @@ abstract class IServiceProvider {
 /// ServiceProvider.instance.registerTransient<TransientService>((sp) => TransientService());
 /// ```
 class ServiceProvider implements IServiceProvider {
-  ServiceProvider._();
+  const ServiceProvider._();
 
-  static final IServiceProvider _instance = ServiceProvider._();
+  static const IServiceProvider _instance = ServiceProvider._();
 
   /// Provides the default `ServiceProvider` instance to allow you to use the methods `getService` and `getRequiredService` anywhere.
   static IServiceProvider get instance => _instance;

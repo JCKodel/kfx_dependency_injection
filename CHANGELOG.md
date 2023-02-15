@@ -36,3 +36,7 @@
 ## 1.3.1
 
 * Added `registerSingletonIfNotRegistered` and `registerTransientIfNotRegistered` to avoid throwing exceptions and making registration idempotent
+
+## 1.3.1+1
+
+* Fixed some grammar errors and refactored the barrel file to make import easier

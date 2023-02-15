@@ -1,3 +1,5 @@
+part of kfx_dependency_injection;
+
 /// What kind of platform the app is running?
 enum PlatformMedia {
   /// App running on a web browser (Flutter Web)
