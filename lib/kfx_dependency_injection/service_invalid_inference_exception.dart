@@ -3,7 +3,7 @@ part of kfx_dependency_injection;
 /// This exception is thrown when you try to use a service provider method without specifying the `TService` generic argument, so the Service Provider
 /// cannot know what type to return
 ///
-/// To fix, ensure you always call the `ServiceProvider` methods with its generic arguments (ex.: `serviceProvider.getService<TGenericType>())
+/// To fix, ensure you always call the `ServiceProvider` methods with its generic arguments (ex.: `serviceProvider.optional<TGenericType>())
 ///
 /// To avoid it during development, use the following lint options:
 ///

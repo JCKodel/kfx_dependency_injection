@@ -8,7 +8,7 @@ class ServiceAlreadyRegisteredException implements Exception {
   factory ServiceAlreadyRegisteredException({required String serviceKey, required bool asSingleton}) => ServiceAlreadyRegisteredException._(serviceKey, asSingleton);
 
   ServiceAlreadyRegisteredException._(String serviceKey, bool asSingleton)
-      : message = "The service ${serviceKey} was already registered as a ${asSingleton ? "singleton" : "transactional"} service";
+      : message = "The service ${serviceKey} was already registered as a ${asSingleton ? "singleton" : "transient"} service";
 
   final String message;
 }

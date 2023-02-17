@@ -17,6 +17,7 @@ Também funciona como um localizador de serviços (onde você tem uma definiçã
 3) O injetor tem um `PlatformInfo` disponível, para que você possa decidir o que injetar baseado na mídia (web, desktop ou mobile) e no host (window, linux, macos, android ou ios)
 4) Seguro para uso com Flutter web, incluindo `PlatformInfo`
 5) Sem dependências externas
+6) Serviços podem dizer se são transientes ou singleton implementando `IMustBeTransient` ou `IMustBeSingleton`
 
 ## Uso
 
@@ -33,16 +34,19 @@ tudo se baseia em interfaces/classes abstratas, que serve apenas como um contrat
 Então, o registro no `main` é algo assim:
 
 ```dart
-ServiceProvider.instance.registerSingleton<IAuthenticationService>(
-  (serviceProvider, platformInfo) => FirebaseAuthenticationService(
-    logService: serviceProvider.getService<ILogService>()
+ServiceProvider.registerSingleton<IAuthenticationService>(
+  (optional, required, platform) => FirebaseAuthenticationService(
+    logService: serviceProvider.optional<ILogService>()
   )
 );
 
-ServiceProvider.instance.registerSingleton<ILogService>(
-  (serviceProvider, platformInfo) => DartDeveloperLogService(isWeb: platformInfo.platformMedia == PlatformMedia.web)
+ServiceProvider.registerSingleton<ILogService>(
+  (optional, required, platform) => DartDeveloperLogService(isWeb: platformInfo.platformMedia == PlatformMedia.web)
 );
 ```
+
+Você pode chamar `optional<TService>()` para obter um serviço opcional (que irá retornar `null` se o tipo não foi registrado) ou `required<TService>()` para obter uma
+implementação concreta do `TService` desejado. Isso é o mesmo que chamar `ServiceProvider.optional<TService>()` ou `ServiceProvider.required<TService>()`.
 
 Note que a oredem de registro não importa, desde que você registre todas as dependências antes de utilizá-las (um bom lugar seria o método `main`, antes da tua app rodar).
 
@@ -52,25 +56,25 @@ e o host que você está rodando (Android, iOS, Windows, MacOS or Linux). Esta i
 Agora, para obter teu serviço de autenticação, com as coisas de log definidas no registro injetadas, você só precisa de:
 
 ```dart
-final authenticationService = ServiceProvider.instance.getRequiredService<IAuthenticationService>();
+final authenticationService = ServiceProvider.required<IAuthenticationService>();
 ```
 
 E é isso. Você não precisa conhecer as implementações concretas nem saber que tipo de log está sendo usado (ou sequer se isso existe).
 
 ### Singleton vs Transiente
 
-A diferença entre os registros são: toda vez que você chamar `getService`, `getRequiredService` ou algo é injetado em outro construtor, singletons sempre retornam a mesma
+A diferença entre os registros são: toda vez que você chamar `optional`, `required` ou algo é injetado em outro construtor, singletons sempre retornam a mesma
 instância de uma classe, enquanto registros transientes sempre retornam uma nova instância daquela classe (na maioria dos casos, você quer um singleton).
 
-### getService vs getRequiredService
+### optional vs required
 
-A diferença entre estes métodos é que `getService` pode retornar `null` caso o serviço especificado não tenha sido registrado, enquanto que `getRequiredService` irá
-lançar uma exceção do tipo `ServiceNotRegisteredException` se o serviço não foi registrado. Você deveria usar `getRequiredService` para certificar-se de que tudo tenha
+A diferença entre estes métodos é que `optional` pode retornar `null` caso o serviço especificado não tenha sido registrado, enquanto que `required` irá
+lançar uma exceção do tipo `ServiceNotRegisteredException` se o serviço não foi registrado. Você deveria usar `required` para certificar-se de que tudo tenha
 sido registrado corretamente durante a inicialização da app.
 
 ## Mocking
 
-Após registrar um tipo, você pode sobreescrevê-lo usando `ServiceProvider.instance.override<TService>((serviceProvider, platformInfo) => MockClass(), key: "some key")`.
+Após registrar um tipo, você pode sobreescrevê-lo usando `ServiceProvider.override<TService>((optional, required, platform) => MockClass(), key: "some key")`.
 
 Isso é útil quando você usa um serviço de API remoto registrado no teu app, mas quer "mockar" este serviço em testes de unidade (onde "mockar" é o ato de criar uma classe
 falsa que não faz chamadas remotas, acesso a banco de dados, etc. exclusivamente para fins de testes). Neste caso, a app continua com o mesmo código (nenhuma mudança é
@@ -97,11 +101,11 @@ usando o argumento `key`:
 import 'some_class.dart';
 import 'package:some_package:some_class.dart' as SomePackage;
 
-ServiceProvider.instance.registerSingleton<SomeClass>(
+ServiceProvider.registerSingleton<SomeClass>(
   (serviceProvider) => SomeClass()
 );
 
-ServiceProvider.instance.registerSingleton<SomePackage.SomeClass>(
+ServiceProvider.registerSingleton<SomePackage.SomeClass>(
   (serviceProvider) => SomePackage.SomeClass(),
   key: "SomePackage"
 );
@@ -114,7 +118,7 @@ Para obter cada versão do registro, use a mesma chave:
 ```dart
 import 'some_class.dart';
 
-final someClass = ServiceProvider.instance.getRequiredService<SomeClass>();
+final someClass = ServiceProvider.required<SomeClass>();
 ```
 
 Isso irá retornar o primeiro registro (porque `key` é `null` em ambos os casos).
@@ -122,7 +126,7 @@ Isso irá retornar o primeiro registro (porque `key` é `null` em ambos os casos
 ```dart
 import 'package:some_package:some_class.dart';
 
-final someClass = ServiceProvider.instance.getRequiredService<SomeClass>(key: "SomePackage");
+final someClass = ServiceProvider.required<SomeClass>(key: "SomePackage");
 ```
 
 Note que o código acima não tem mais um alias, mas ainda assim irá retornar a versão correta de `SomeClass` por que o mesmo argumento `key` foi utilizado.
@@ -137,16 +141,16 @@ Esta exceção é lançada quando você tenta registrar um tipo com a mesma `key
 
 ### `ServiceNotRegisteredException`
 
-Esta exceção é lançada por `getRequiredService` quando um serviço é requisitado e o mesmo não foi registrado. Também pelo método `unregister`, se o argumento
+Esta exceção é lançada por `required` quando um serviço é requisitado e o mesmo não foi registrado. Também pelo método `unregister`, se o argumento
 `throwsExceptionIfNotRegistered` for `true` (ele é `false` por padrão).
 
 ### `ServiceInvalidInferenceException`
 
-Dart, por padrão, não irá lhe avisar quando você não prover um argumento genérico onde um é esperado, então `ServiceProvider.instance.getService()` é um código válido,
+Dart, por padrão, não irá lhe avisar quando você não prover um argumento genérico onde um é esperado, então `ServiceProvider.optional()` é um código válido,
 porém é impossível determinar que tipo de serviço devemos retornar (já que `TService` seria `dynamic` neste caso). O uso correto seria
-`ServiceProvider.instance.getService<SomeTypeHere>()`.
+`ServiceProvider.optional<SomeTypeHere>()`.
 
-O mesmo ocorre durante o registro de um tipo nulo: `ServiceProvider.instance.registerSingleton((sp) => null)`, que é código válido, porém o tipo retornado seria `Null`.
+O mesmo ocorre durante o registro de um tipo nulo: `ServiceProvider.registerSingleton((sp) => null)`, que é código válido, porém o tipo retornado seria `Null`.
 
 Para ser avisado sobre estes casos, você deve ligar o `strict-inference` no analizador lingüístico em seu arquivo `analysis_options.yaml`:
 
@@ -159,13 +163,18 @@ analyzer:
 Esta configuração irá lhe prover avisos como este:
 
 ```dart
-ServiceProvider.instance.getService();
+ServiceProvider.optional();
 ```
 
 ```text
-The type argument(s) of the function 'getService' can't be inferred. 
-Use explicit type argument(s) for 'getService'.
+The type argument(s) of the function 'optional' can't be inferred. 
+Use explicit type argument(s) for 'optional'.
 
-(O(s) argumento(s) de tipo da função 'getService' não podem ser inferidos.
-Use argumento(s) de tipo explicitamente para 'getService'.)
+(O(s) argumento(s) de tipo da função 'optional' não podem ser inferidos.
+Use argumento(s) de tipo explicitamente para 'optional'.)
 ```
+
+### `InvalidRegistrationModalForTypeException`
+
+Esta exceção abstrata é implementada por `RegistryMustBeTransientException` ou `RegistryMustBeSingletonException` e são lançadas quando um serviço que implement
+`IMustBeTransient` é registrado usando `ServiceProvider.registerSingleton` ou vice-versa.

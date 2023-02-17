@@ -30,7 +30,7 @@
 
 * Refactoring to separate write/query methods from `ServiceProvider`
 * Breaking change: write methods (i.e.: `registerTransient`) no longer requires `ServiceProvider.instance` (they are now static methods)
-* Breaking change: During registration, a `IServiceProvider` is available only with query methods (`isRegistered`, `getService` and `getRequiredService`)
+* Breaking change: During registration, a `IServiceProvider` is available only with query methods (`isRegistered`, `optional` and `required`)
 * Breaking change: to avoid conflict with the `@override` attribute, the `override` method was renamed to `replace`
 
 ## 1.3.1
@@ -40,3 +40,36 @@
 ## 1.3.1+1
 
 * Fixed some grammar errors and refactored the barrel file to make import easier
+
+## 1.4.0
+
+* Breaking change: now `registerTransient` and `registerSingleton` have the following signature: `(optional, required, platform)`, so you can inject optional
+and required services in a easier way:
+
+```dart
+ServiceProvider.registerTransient<SomeAbstractClass>(
+  (optional, required, platform) => SomeConcreteClassWithDependencies(
+    dependencyA: optional<DependencyA>(), 
+    dependencyB: required<DependencyB>(),
+    platform: platform, 
+  ),
+);
+
+class SomeConcreteClassWithDependencies {
+  SomeConcreteClassWithDependencies({
+    this.dependencyA, 
+    this.dependencyB,
+    this.platform,
+  });
+
+  final DependencyA dependencyA;
+  final DependencyB dependencyB;
+  final IPlatformInfo platform;
+}
+```
+
+* Also, `getService<T>()` was renamed to `optional<T>()` and `getRequiredService<T>()` was renamed to `required<T>()`.
+
+* Now you can implement `IMustBeTransient` or `IMustBeSingleton` in your services to validate the required type of registration (i.e.: a class that implements
+`IMustBeTransient` will throw a `InvalidRegistrationModalForTypeException`, if you try to register it with
+`ServiceProvider.registerTransient<ClassThatImplementsIMustBeTransient>((optional, required, platform) => SomeClass())`)
