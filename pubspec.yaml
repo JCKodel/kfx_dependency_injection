@@ -1,6 +1,6 @@
 name: kfx_dependency_injection
 description: Flutter Dependency Injection library based on dotnet ServiceProvider
-version: 1.4.0
+version: 1.4.1
 homepage: https://github.com/JCKodel/kfx_dependency_injection
 
 environment:
