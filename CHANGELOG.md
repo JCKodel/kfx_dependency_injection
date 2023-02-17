@@ -73,3 +73,8 @@ class SomeConcreteClassWithDependencies {
 * Now you can implement `IMustBeTransient` or `IMustBeSingleton` in your services to validate the required type of registration (i.e.: a class that implements
 `IMustBeTransient` will throw a `InvalidRegistrationModalForTypeException`, if you try to register it with
 `ServiceProvider.registerTransient<ClassThatImplementsIMustBeTransient>((optional, required, platform) => SomeClass())`)
+
+## 1.4.1
+
+Added the `PlatformDesignSystem platformDesignSystem` property in `IPlatformInfo`, so you can quickly determine what kind of design system the host platform
+uses (Material Design for Linux and Android, Apple Human Interface for MacOS or iOS, Fluent Design for Windows)

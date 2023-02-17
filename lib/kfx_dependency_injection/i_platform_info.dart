@@ -17,4 +17,7 @@ abstract class IPlatformInfo {
 
   /// `true` when the app is running in debug mode, `false` for release
   bool get isDebug;
+
+  /// Returns the most appropriate `PlatformDesignSystem` for the current host
+  PlatformDesignSystem get platformDesignSystem;
 }

@@ -33,4 +33,21 @@ class PlatformInfo implements IPlatformInfo {
   /// `true` when the app is running in debug mode, `false` for release
   @override
   bool get isDebug => kDebugMode;
+
+  /// Returns the most appropriate `PlatformDesignSystem` for the current host
+  @override
+  PlatformDesignSystem get platformDesignSystem {
+    switch (platformHost) {
+      case PlatformHost.android:
+      case PlatformHost.linux:
+        return PlatformDesignSystem.materialDesign;
+      case PlatformHost.ios:
+      case PlatformHost.macos:
+        return PlatformDesignSystem.appleHumanIntercace;
+      case PlatformHost.windows:
+        return PlatformDesignSystem.fluentDesign;
+      case PlatformHost.unknown:
+        return PlatformDesignSystem.unknown;
+    }
+  }
 }
