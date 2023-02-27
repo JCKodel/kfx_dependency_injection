@@ -13,9 +13,7 @@ typedef InjectorDelegate<TService> = TService Function(TConcrete? Function<TConc
 /// ServiceProvider.registerSingleton<SingletonService>((optional, required, platform) => SingletonService(sp.required<TransientService>()));
 /// ServiceProvider.registerTransient<TransientService>((optional, required, platform) => TransientService());
 /// ```
-class ServiceProvider {
-  const ServiceProvider._();
-
+abstract class ServiceProvider {
   // ignore: strict_raw_type
   static final _factoryRegistry = <String, _ServiceFactory>{};
 
@@ -122,10 +120,68 @@ class ServiceProvider {
     _factoryRegistry.clear();
   }
 
-  /// Replaces a previous registration (for example, to mock concrete implementations in unit tests)
+  /// Replaces a previous registration
   ///
-  /// The replace is registered as singleton or transient depending on the original registration, and that registration must exist
+  /// The registration must exist (otherwise, throws a ServiceNotRegisteredException)
+  ///
+  /// This is different from override because it requires a previous registration and thus will not work in future registrations
+  ///
+  /// The replacement will be transient/singleton if the previous registration was transient/singleton
   static void replace<TService>(InjectorDelegate<TService> constructor, {String? key}) {
+    final serviceKey = _getServiceKey<TService>(key);
+    final registration = _factoryRegistry[serviceKey];
+
+    if (registration == null) {
+      throw ServiceNotRegisteredException(serviceKey: serviceKey);
+    }
+
+    final isSingleton = registration.isSingleton;
+
+    _factoryRegistry.remove(serviceKey);
+
+    if (isSingleton) {
+      registerSingleton<TService>(constructor, key: key);
+    } else {
+      registerTransient<TService>(constructor, key: key);
+    }
+  }
+
+  /// Register a transient service or replace it if it was already registered
+  ///
+  /// This is different from override because it requires a previous registration and thus will not work in future registrations
+  ///
+  /// If the previous registration exists and it was singleton, it will be transient now
+  static void registerOrReplaceTransient<TService>(InjectorDelegate<TService> constructor, {String? key}) {
+    final serviceKey = _getServiceKey<TService>(key);
+    final registration = _factoryRegistry[serviceKey];
+
+    if (registration != null) {
+      _factoryRegistry.remove(serviceKey);
+    }
+
+    registerTransient<TService>(constructor, key: key);
+  }
+
+  /// Register a SINGLETON service or replace it if it was already registered
+  ///
+  /// This is different from override because it requires a previous registration and thus will not work in future registrations
+  ///
+  /// If the previous registration exists and it was transient, it will be singleton now
+  static void registerOrReplaceSingleton<TService>(InjectorDelegate<TService> constructor, {String? key}) {
+    final serviceKey = _getServiceKey<TService>(key);
+    final registration = _factoryRegistry[serviceKey];
+
+    if (registration != null) {
+      _factoryRegistry.remove(serviceKey);
+    }
+
+    registerSingleton<TService>(constructor, key: key);
+  }
+
+  /// Overrides a previous or future registration (for example, to mock concrete implementations in unit tests)
+  ///
+  /// The override is registered as singleton or transient depending on the original registration, and that registration must exist
+  static void override<TService>(InjectorDelegate<TService> constructor, {String? key}) {
     final serviceKey = _getServiceKey<TService>(key);
     final registration = _factoryRegistry[serviceKey];
 
@@ -150,6 +206,26 @@ class ServiceProvider {
     final serviceKey = _getServiceKey<TService>(key);
 
     return _factoryRegistry.containsKey(serviceKey);
+  }
+
+  /// Returns `true` if the service `TService` is registered with the specified `key` as singleton.
+  ///
+  /// Throws `ServiceInvalidInferenceException` if you forget to specify `TService`
+  static bool isRegisteredAsSingleton<TService>({String? key}) {
+    final serviceKey = _getServiceKey<TService>(key);
+    final registration = _factoryRegistry[serviceKey];
+
+    return registration != null && registration.isSingleton;
+  }
+
+  /// Returns `true` if the service `TService` is registered with the specified `key` as singleton.
+  ///
+  /// Throws `ServiceInvalidInferenceException` if you forget to specify `TService`
+  static bool isRegisteredAsTransient<TService>({String? key}) {
+    final serviceKey = _getServiceKey<TService>(key);
+    final registration = _factoryRegistry[serviceKey];
+
+    return registration != null && registration.isSingleton == false;
   }
 
   /// Returns a registered `TService`. If `TService` was not registered, returns null.
@@ -222,11 +298,20 @@ class _ServiceFactory<TService> {
   TService? _instance;
   TService get instance {
     if (isSingleton) {
-      // ignore: invalid_use_of_protected_member
-      return _instance ?? (_instance = constructor(ServiceProvider.optional, ServiceProvider.required, PlatformInfo.platformInfo));
+      return _instance ?? (_instance = _buildInstance());
     }
 
+    return _buildInstance();
+  }
+
+  TService _buildInstance() {
     // ignore: invalid_use_of_protected_member
-    return constructor(ServiceProvider.optional, ServiceProvider.required, PlatformInfo.platformInfo);
+    final instance = constructor(ServiceProvider.optional, ServiceProvider.required, PlatformInfo.platformInfo);
+
+    if (instance is IInitializable) {
+      instance.initialize();
+    }
+
+    return instance;
   }
 }

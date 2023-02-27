@@ -2,6 +2,7 @@ library kfx_dependency_injection;
 
 import 'kfx_dependency_injection/platform_info.dart';
 
+part 'kfx_dependency_injection/i_initializable.dart';
 part 'kfx_dependency_injection/i_must_be.dart';
 part 'kfx_dependency_injection/i_platform_info.dart';
 part 'kfx_dependency_injection/invalid_registration_modal_for_type_exception.dart';

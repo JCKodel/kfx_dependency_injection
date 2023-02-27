@@ -29,9 +29,9 @@
 ## 1.3.0
 
 * Refactoring to separate write/query methods from `ServiceProvider`
-* Breaking change: write methods (i.e.: `registerTransient`) no longer requires `ServiceProvider.instance` (they are now static methods)
-* Breaking change: During registration, a `IServiceProvider` is available only with query methods (`isRegistered`, `optional` and `required`)
-* Breaking change: to avoid conflict with the `@override` attribute, the `override` method was renamed to `replace`
+* BREAKING CHANGE: write methods (i.e.: `registerTransient`) no longer requires `ServiceProvider.instance` (they are now static methods)
+* BREAKING CHANGE: During registration, a `IServiceProvider` is available only with query methods (`isRegistered`, `optional` and `required`)
+* BREAKING CHANGE: to avoid conflict with the `@override` attribute, the `override` method was renamed to `replace`
 
 ## 1.3.1
 
@@ -43,7 +43,7 @@
 
 ## 1.4.0
 
-* Breaking change: now `registerTransient` and `registerSingleton` have the following signature: `(optional, required, platform)`, so you can inject optional
+* BREAKING CHANGE: now `registerTransient` and `registerSingleton` have the following signature: `(optional, required, platform)`, so you can inject optional
 and required services in a easier way:
 
 ```dart
@@ -76,5 +76,14 @@ class SomeConcreteClassWithDependencies {
 
 ## 1.4.1
 
-Added the `PlatformDesignSystem platformDesignSystem` property in `IPlatformInfo`, so you can quickly determine what kind of design system the host platform
+* Added the `PlatformDesignSystem platformDesignSystem` property in `IPlatformInfo`, so you can quickly determine what kind of design system the host platform
 uses (Material Design for Linux and Android, Apple Human Interface for MacOS or iOS, Fluent Design for Windows)
+
+## 1.5.0
+
+* More methods added, such as `registerOrReplaceTransient`, `override`, `isRegisteredAsSingleton`, etc.
+
+* New interface `IInitializable` that will run `Service.initialize()` every time an instance of `Service` is created.
+
+* BREAKING CHANGE: The `replace` method was renamed to `override`. The new `replace` method will replace an existing registration (or throws an error if the
+service isn't registered)

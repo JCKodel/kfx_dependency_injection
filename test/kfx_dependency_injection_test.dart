@@ -4,10 +4,35 @@ import 'package:test/test.dart';
 
 import 'package:kfx_dependency_injection/kfx_dependency_injection.dart';
 
-class _TestClass {
+abstract class _ITest implements IInitializable {
+  bool get wasInitialized;
+  int get value;
+  set value(int v);
+}
+
+class _TestClass implements _ITest {
   _TestClass();
 
-  int value = 0;
+  int _value = 0;
+
+  @override
+  int get value => _value;
+
+  @override
+  set value(int v) => _value = v;
+
+  bool _wasInitialized = false;
+
+  static int initializationCount = 0;
+
+  @override
+  void initialize() {
+    _wasInitialized = true;
+    initializationCount++;
+  }
+
+  @override
+  bool get wasInitialized => _wasInitialized;
 }
 
 class _MockTestClass extends _TestClass {
@@ -38,57 +63,77 @@ void main() {
   tearDown(() => ServiceProvider.unregisterAll());
 
   test("Registered transient services must be transient", () {
-    ServiceProvider.registerTransient((optional, required, platform) => _TestClass(), key: "1");
-    ServiceProvider.registerTransient((optional, required, platform) => _TestClass(), key: "2");
+    ServiceProvider.registerTransient<_ITest>((optional, required, platform) => _TestClass(), key: "1");
+    ServiceProvider.registerTransient<_ITest>((optional, required, platform) => _TestClass(), key: "2");
 
-    final tc1 = ServiceProvider.required<_TestClass>(key: "1");
-    final tc2 = ServiceProvider.required<_TestClass>(key: "2");
+    final tc1 = ServiceProvider.required<_ITest>(key: "1");
+    final tc2 = ServiceProvider.required<_ITest>(key: "2");
 
     tc1.value = 1;
     tc2.value = 2;
 
     expect(tc1.value, 1);
     expect(tc2.value, 2);
-    expect(ServiceProvider.required<_TestClass>(key: "1").value, 0);
-    expect(ServiceProvider.required<_TestClass>(key: "2").value, 0);
+    expect(ServiceProvider.required<_ITest>(key: "1").value, 0);
+    expect(ServiceProvider.required<_ITest>(key: "2").value, 0);
   });
 
-  test("Overrides must work", () {
-    ServiceProvider.registerTransient((optional, required, platform) => _TestClass(), key: "1");
+  test("Transient overrides must work", () {
+    ServiceProvider.registerTransient<_ITest>((optional, required, platform) => _TestClass(), key: "1");
 
-    ServiceProvider.replace<_TestClass>((optional, required, platform) => _MockTestClass(value: 11), key: "1");
-    ServiceProvider.replace<_TestClass>((optional, required, platform) => _MockTestClass(value: 22), key: "2");
+    ServiceProvider.override<_ITest>((optional, required, platform) => _MockTestClass(value: 11), key: "1");
+    ServiceProvider.override<_ITest>((optional, required, platform) => _MockTestClass(value: 22), key: "2");
 
-    ServiceProvider.registerTransient((optional, required, platform) => _TestClass(), key: "2");
+    ServiceProvider.registerTransient<_ITest>((optional, required, platform) => _TestClass(), key: "2");
 
-    final tc1 = ServiceProvider.required<_TestClass>(key: "1");
-    final tc2 = ServiceProvider.required<_TestClass>(key: "2");
+    final tc1 = ServiceProvider.required<_ITest>(key: "1");
+    final tc2 = ServiceProvider.required<_ITest>(key: "2");
 
     expect(tc1.value, 11);
     expect(tc2.value, 22);
-    expect(ServiceProvider.required<_TestClass>(key: "1").value, 11);
+    expect(ServiceProvider.required<_ITest>(key: "1").value, 11);
 
     tc1.value = 33;
 
-    expect(ServiceProvider.required<_TestClass>(key: "2").value, 22);
+    expect(ServiceProvider.required<_ITest>(key: "2").value, 22);
+  });
+
+  test("Singleton overrides must work", () {
+    ServiceProvider.registerSingleton<_ITest>((optional, required, platform) => _TestClass(), key: "1");
+
+    ServiceProvider.override<_ITest>((optional, required, platform) => _MockTestClass(value: 11), key: "1");
+    ServiceProvider.override<_ITest>((optional, required, platform) => _MockTestClass(value: 22), key: "2");
+
+    ServiceProvider.registerSingleton<_ITest>((optional, required, platform) => _TestClass(), key: "2");
+
+    final tc1 = ServiceProvider.required<_ITest>(key: "1");
+    final tc2 = ServiceProvider.required<_ITest>(key: "2");
+
+    expect(tc1.value, 11);
+    expect(tc2.value, 22);
+    expect(ServiceProvider.required<_ITest>(key: "1").value, 11);
+
+    tc1.value = 33;
+
+    expect(ServiceProvider.required<_ITest>(key: "2").value, 22);
   });
 
   test("Registered singleton services must be singleton", () {
-    ServiceProvider.registerSingleton((optional, required, platform) => _TestClass(), key: "1");
-    ServiceProvider.registerSingleton((optional, required, platform) => _TestClass(), key: "2");
+    ServiceProvider.registerSingleton<_ITest>((optional, required, platform) => _TestClass(), key: "1");
+    ServiceProvider.registerSingleton<_ITest>((optional, required, platform) => _TestClass(), key: "2");
 
-    final tc1 = ServiceProvider.required<_TestClass>(key: "1");
-    final tc2 = ServiceProvider.required<_TestClass>(key: "2");
+    final tc1 = ServiceProvider.required<_ITest>(key: "1");
+    final tc2 = ServiceProvider.required<_ITest>(key: "2");
 
     tc1.value = 1;
     tc2.value = 2;
 
     expect(tc1.value, 1);
     expect(tc2.value, 2);
-    expect(ServiceProvider.required<_TestClass>(key: "1").value, 1);
-    expect(ServiceProvider.required<_TestClass>(key: "2").value, 2);
+    expect(ServiceProvider.required<_ITest>(key: "1").value, 1);
+    expect(ServiceProvider.required<_ITest>(key: "2").value, 2);
     tc2.value = 4;
-    expect(ServiceProvider.required<_TestClass>(key: "2").value, 4);
+    expect(ServiceProvider.required<_ITest>(key: "2").value, 4);
   });
 
   test("IMustBeTransient and IMustBeSingleton must validate the service", () {
@@ -115,55 +160,134 @@ void main() {
   test("Unallow duplicate registration", () {
     _expectException<ServiceAlreadyRegisteredException>(
       () {
-        ServiceProvider.registerTransient<_TestClass>((optional, required, platform) => _TestClass());
-        ServiceProvider.registerTransient<_TestClass>((optional, required, platform) => _TestClass());
+        ServiceProvider.registerTransient<_ITest>((optional, required, platform) => _TestClass());
+        ServiceProvider.registerTransient<_ITest>((optional, required, platform) => _TestClass());
       },
-      "The service _TestClass was already registered as a transient service",
+      "The service _ITest was already registered as a transient service",
     );
 
     ServiceProvider.unregisterAll();
 
     _expectException<ServiceAlreadyRegisteredException>(
       () {
-        ServiceProvider.registerSingleton<_TestClass>((optional, required, platform) => _TestClass());
-        ServiceProvider.registerSingleton<_TestClass>((optional, required, platform) => _TestClass());
+        ServiceProvider.registerSingleton<_ITest>((optional, required, platform) => _TestClass());
+        ServiceProvider.registerSingleton<_ITest>((optional, required, platform) => _TestClass());
       },
-      "The service _TestClass was already registered as a singleton service",
+      "The service _ITest was already registered as a singleton service",
     );
 
     _expectException<ServiceAlreadyRegisteredException>(
       () {
-        ServiceProvider.registerTransient<_TestClass>((optional, required, platform) => _TestClass());
+        ServiceProvider.registerTransient<_ITest>((optional, required, platform) => _TestClass());
       },
-      "The service _TestClass was already registered as a singleton service",
+      "The service _ITest was already registered as a singleton service",
     );
   });
 
-  test("Ignore duplicate registration", () {
-    ServiceProvider.registerTransient((optional, required, platform) => _TestClass());
+  test("Ignore duplicate transient registration", () {
+    ServiceProvider.registerTransientIfNotRegistered<_ITest>((optional, required, platform) => _TestClass());
 
-    expect(ServiceProvider.required<_TestClass>().value, 0);
+    expect(ServiceProvider.required<_ITest>().value, 0);
 
-    ServiceProvider.registerTransientIfNotRegistered((optional, required, platform) => _MockTestClass(value: 2));
+    ServiceProvider.registerTransientIfNotRegistered<_ITest>((optional, required, platform) => _MockTestClass(value: 2));
 
-    expect(ServiceProvider.required<_TestClass>().value, 0);
+    expect(ServiceProvider.required<_ITest>().value, 0);
+  });
+
+  test("Ignore duplicate singleton registration", () {
+    ServiceProvider.registerSingletonIfNotRegistered<_ITest>((optional, required, platform) => _TestClass());
+
+    expect(ServiceProvider.required<_ITest>().value, 0);
+
+    ServiceProvider.registerSingletonIfNotRegistered<_ITest>((optional, required, platform) => _MockTestClass(value: 2));
+
+    expect(ServiceProvider.required<_ITest>().value, 0);
+  });
+
+  test("Replaces registrations copying the previous behavior", () {
+    ServiceProvider.registerTransient<_ITest>((optional, required, platform) => _TestClass(), key: "T");
+    ServiceProvider.registerSingleton<_ITest>((optional, required, platform) => _TestClass(), key: "S");
+
+    expect(true, ServiceProvider.isRegisteredAsTransient<_ITest>(key: "T"));
+    expect(true, ServiceProvider.isRegisteredAsSingleton<_ITest>(key: "S"));
+
+    final t1 = ServiceProvider.required<_ITest>(key: "T");
+    final t2 = ServiceProvider.required<_ITest>(key: "S");
+
+    expect(true, t1 is _TestClass);
+    expect(false, t1 is _MockTestClass);
+    expect(true, t2 is _TestClass);
+    expect(false, t2 is _MockTestClass);
+
+    ServiceProvider.replace<_ITest>((optional, required, platform) => _MockTestClass(value: 2), key: "T");
+    ServiceProvider.replace<_ITest>((optional, required, platform) => _MockTestClass(value: 2), key: "S");
+
+    expect(true, ServiceProvider.isRegisteredAsTransient<_ITest>(key: "T"));
+    expect(true, ServiceProvider.isRegisteredAsSingleton<_ITest>(key: "S"));
+
+    final rt1 = ServiceProvider.required<_ITest>(key: "T");
+    final rt2 = ServiceProvider.required<_ITest>(key: "S");
+
+    expect(true, rt1 is _TestClass);
+    expect(true, rt1 is _MockTestClass);
+    expect(true, rt2 is _TestClass);
+    expect(true, rt2 is _MockTestClass);
+  });
+
+  test("Replaces non existing registration should throw", () {
+    _expectException<ServiceNotRegisteredException>(
+      () {
+        ServiceProvider.replace<_ITest>((optional, required, platform) => _TestClass(), key: "T");
+      },
+      "The service _ITest:T was not registered",
+    );
+  });
+
+  test("Replaces registrations with new behaviour", () {
+    ServiceProvider.registerTransient<_ITest>((optional, required, platform) => _TestClass(), key: "T");
+    ServiceProvider.registerSingleton<_ITest>((optional, required, platform) => _TestClass(), key: "S");
+
+    expect(true, ServiceProvider.isRegisteredAsTransient<_ITest>(key: "T"));
+    expect(true, ServiceProvider.isRegisteredAsSingleton<_ITest>(key: "S"));
+
+    final t1 = ServiceProvider.required<_ITest>(key: "T");
+    final t2 = ServiceProvider.required<_ITest>(key: "S");
+
+    expect(true, t1 is _TestClass);
+    expect(false, t1 is _MockTestClass);
+    expect(true, t2 is _TestClass);
+    expect(false, t2 is _MockTestClass);
+
+    ServiceProvider.registerOrReplaceSingleton<_ITest>((optional, required, platform) => _MockTestClass(value: 2), key: "T");
+    ServiceProvider.registerOrReplaceTransient<_ITest>((optional, required, platform) => _MockTestClass(value: 2), key: "S");
+
+    expect(true, ServiceProvider.isRegisteredAsSingleton<_ITest>(key: "T"));
+    expect(true, ServiceProvider.isRegisteredAsTransient<_ITest>(key: "S"));
+
+    final rt1 = ServiceProvider.required<_ITest>(key: "T");
+    final rt2 = ServiceProvider.required<_ITest>(key: "S");
+
+    expect(true, rt1 is _TestClass);
+    expect(true, rt1 is _MockTestClass);
+    expect(true, rt2 is _TestClass);
+    expect(true, rt2 is _MockTestClass);
   });
 
   test("Registration tests", () {
-    ServiceProvider.registerTransient((optional, required, platform) => _TestClass(), key: "1");
-    ServiceProvider.registerTransient((optional, required, platform) => _TestClass());
+    ServiceProvider.registerTransient<_ITest>((optional, required, platform) => _TestClass(), key: "1");
+    ServiceProvider.registerTransient<_ITest>((optional, required, platform) => _TestClass());
 
-    expect(ServiceProvider.isRegistered<_TestClass>(key: "1"), true);
-    expect(ServiceProvider.isRegistered<_TestClass>(), true);
-    expect(ServiceProvider.isRegistered<_TestClass>(key: "2"), false);
+    expect(ServiceProvider.isRegistered<_ITest>(key: "1"), true);
+    expect(ServiceProvider.isRegistered<_ITest>(), true);
+    expect(ServiceProvider.isRegistered<_ITest>(key: "2"), false);
   });
 
   test("Required services validation", () {
-    ServiceProvider.registerTransient((optional, required, platform) => _TestClass(), key: "1");
-    ServiceProvider.registerTransient((optional, required, platform) => _TestClass());
+    ServiceProvider.registerTransient<_ITest>((optional, required, platform) => _TestClass(), key: "1");
+    ServiceProvider.registerTransient<_ITest>((optional, required, platform) => _TestClass());
 
-    final tc1 = ServiceProvider.required<_TestClass>(key: "1");
-    final tc = ServiceProvider.required<_TestClass>();
+    final tc1 = ServiceProvider.required<_ITest>(key: "1");
+    final tc = ServiceProvider.required<_ITest>();
 
     tc1.value = 1;
     tc.value = 2;
@@ -171,51 +295,51 @@ void main() {
     expect(tc1.value, 1);
     expect(tc.value, 2);
 
-    final tc2 = ServiceProvider.optional<_TestClass>(key: "2");
+    final tc2 = ServiceProvider.optional<_ITest>(key: "2");
 
     expect(tc2, null);
 
     _expectException<ServiceNotRegisteredException>(
       () {
-        final tc3 = ServiceProvider.required<_TestClass>(key: "3");
+        final tc3 = ServiceProvider.required<_ITest>(key: "3");
 
         expect(tc3, null);
       },
-      "The service _TestClass:3 was not registered",
+      "The service _ITest:3 was not registered",
     );
   });
 
   test("Services unregistrations", () {
-    ServiceProvider.registerTransient((optional, required, platform) => _TestClass());
-    ServiceProvider.registerTransient((optional, required, platform) => _TestClass(), key: "1");
+    ServiceProvider.registerTransient<_ITest>((optional, required, platform) => _TestClass());
+    ServiceProvider.registerTransient<_ITest>((optional, required, platform) => _TestClass(), key: "1");
 
-    expect(ServiceProvider.optional<_TestClass>()!.value, 0);
-    expect(ServiceProvider.optional<_TestClass>(key: "1")!.value, 0);
+    expect(ServiceProvider.optional<_ITest>()!.value, 0);
+    expect(ServiceProvider.optional<_ITest>(key: "1")!.value, 0);
 
-    ServiceProvider.unregister<_TestClass>();
+    ServiceProvider.unregister<_ITest>();
 
-    expect(ServiceProvider.optional<_TestClass>(), null);
-    expect(ServiceProvider.optional<_TestClass>(key: "1")!.value, 0);
+    expect(ServiceProvider.optional<_ITest>(), null);
+    expect(ServiceProvider.optional<_ITest>(key: "1")!.value, 0);
 
-    ServiceProvider.registerTransient((optional, required, platform) => _TestClass());
-    ServiceProvider.unregister<_TestClass>(key: "1");
+    ServiceProvider.registerTransient<_ITest>((optional, required, platform) => _TestClass());
+    ServiceProvider.unregister<_ITest>(key: "1");
 
-    expect(ServiceProvider.optional<_TestClass>()!.value, 0);
-    expect(ServiceProvider.optional<_TestClass>(key: "1"), null);
+    expect(ServiceProvider.optional<_ITest>()!.value, 0);
+    expect(ServiceProvider.optional<_ITest>(key: "1"), null);
 
     ServiceProvider.unregisterAll();
 
     _expectException<ServiceNotRegisteredException>(
       () {
-        ServiceProvider.unregister<_TestClass>(throwsExceptionIfNotRegistered: true);
+        ServiceProvider.unregister<_ITest>(throwsExceptionIfNotRegistered: true);
       },
-      "The service _TestClass was not registered",
+      "The service _ITest was not registered",
     );
   });
 
   test("Service without generic argument", () {
-    ServiceProvider.registerSingleton((optional, required, platform) => _TestClass());
-    ServiceProvider.registerSingleton((optional, required, platform) => _TestClass(), key: "1");
+    ServiceProvider.registerSingleton<_ITest>((optional, required, platform) => _TestClass());
+    ServiceProvider.registerSingleton<_ITest>((optional, required, platform) => _TestClass(), key: "1");
 
     _expectException<ServiceInvalidInferenceException>(
       () {
@@ -251,5 +375,29 @@ void main() {
       },
       "The service with key 1 was used without specifying the TService generic argument, so I don't know what type to return",
     );
+  });
+
+  test("IInitializable initializes instances every transient instance", () {
+    _TestClass.initializationCount = 0;
+    ServiceProvider.registerTransient<_ITest>((optional, required, platform) => _TestClass());
+
+    final t0 = ServiceProvider.required<_ITest>();
+    final t1 = ServiceProvider.required<_ITest>();
+
+    expect(t0.wasInitialized, true);
+    expect(t1.wasInitialized, true);
+    expect(_TestClass.initializationCount, 2);
+  });
+
+  test("IInitializable initializes instances once for singleton instance", () {
+    _TestClass.initializationCount = 0;
+    ServiceProvider.registerSingleton<_ITest>((optional, required, platform) => _TestClass());
+
+    final t0 = ServiceProvider.required<_ITest>();
+    final t1 = ServiceProvider.required<_ITest>();
+
+    expect(t0.wasInitialized, true);
+    expect(t1.wasInitialized, true);
+    expect(_TestClass.initializationCount, 1);
   });
 }
