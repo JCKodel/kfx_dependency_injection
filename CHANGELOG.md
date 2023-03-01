@@ -87,3 +87,7 @@ uses (Material Design for Linux and Android, Apple Human Interface for MacOS or 
 
 * BREAKING CHANGE: The `replace` method was renamed to `override`. The new `replace` method will replace an existing registration (or throws an error if the
 service isn't registered)
+
+## 1.5.1
+
+* Add `toString` overrides to all exceptions

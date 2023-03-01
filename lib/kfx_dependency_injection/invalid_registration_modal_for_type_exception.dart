@@ -8,6 +8,9 @@ abstract class InvalidRegistrationModalForTypeException implements Exception {
       : message = "The service ${serviceKey} must be registered with register${shouldBeSingleton ? "Singleton" : "Transient"} method";
 
   final String message;
+
+  @override
+  String toString() => "${runtimeType}: ${message}";
 }
 
 /// This exception is thrown when you try to register a service that implements `IMustBeTransient` as singleton.
@@ -17,6 +20,9 @@ class RegistryMustBeTransientException extends InvalidRegistrationModalForTypeEx
   factory RegistryMustBeTransientException({required String serviceKey}) => RegistryMustBeTransientException._(serviceKey);
 
   RegistryMustBeTransientException._(String serviceKey) : super._(serviceKey, false);
+
+  @override
+  String toString() => "${runtimeType}: ${message}";
 }
 
 /// This exception is thrown when you try to register a service that implements `IMustBeTransient` as transient.
@@ -26,4 +32,7 @@ class RegistryMustBeSingletonException extends InvalidRegistrationModalForTypeEx
   factory RegistryMustBeSingletonException({required String serviceKey}) => RegistryMustBeSingletonException._(serviceKey);
 
   RegistryMustBeSingletonException._(String serviceKey) : super._(serviceKey, true);
+
+  @override
+  String toString() => "${runtimeType}: ${message}";
 }

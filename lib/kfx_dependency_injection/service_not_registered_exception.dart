@@ -9,4 +9,7 @@ class ServiceNotRegisteredException implements Exception {
   ServiceNotRegisteredException._(String serviceKey) : message = "The service ${serviceKey} was not registered";
 
   final String message;
+
+  @override
+  String toString() => "${runtimeType}: ${message}";
 }

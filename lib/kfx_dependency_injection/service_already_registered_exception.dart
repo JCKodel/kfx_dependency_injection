@@ -11,4 +11,7 @@ class ServiceAlreadyRegisteredException implements Exception {
       : message = "The service ${serviceKey} was already registered as a ${asSingleton ? "singleton" : "transient"} service";
 
   final String message;
+
+  @override
+  String toString() => "${runtimeType}: ${message}";
 }

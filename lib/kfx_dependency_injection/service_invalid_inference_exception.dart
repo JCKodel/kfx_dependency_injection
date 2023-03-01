@@ -24,4 +24,7 @@ class ServiceInvalidInferenceException implements Exception {
             "generic argument, so I don't know what type to return";
 
   final String message;
+
+  @override
+  String toString() => "${runtimeType}: ${message}";
 }

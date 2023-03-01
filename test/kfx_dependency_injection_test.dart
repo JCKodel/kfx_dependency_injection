@@ -56,6 +56,7 @@ void _expectException<TException extends Exception>(void Function() method, Stri
   } catch (ex) {
     expect(ex, isA<TException>());
     expect(expectedMessage, (ex as dynamic).message);
+    expect("${ex.runtimeType}: ${expectedMessage}", ex.toString());
   }
 }
 
