@@ -91,3 +91,7 @@ service isn't registered)
 ## 1.5.1
 
 * Add `toString` overrides to all exceptions
+
+## 1.5.1+1
+
+* Fixing some dependencies export
