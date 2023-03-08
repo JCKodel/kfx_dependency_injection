@@ -95,3 +95,7 @@ service isn't registered)
 ## 1.5.1+1
 
 * Fixing some dependencies export
+
+## 1.5.1+2
+
+Changing the license from GPL3 to BSD3
