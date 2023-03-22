@@ -98,4 +98,8 @@ service isn't registered)
 
 ## 1.5.1+2
 
-Changing the license from GPL3 to BSD3
+* Changing the license from GPL3 to BSD3
+
+## 1.5.2
+
+* `PlatformInfo` is now publicly available through `ServiceProvider`

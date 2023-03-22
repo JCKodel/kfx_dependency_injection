@@ -1,5 +1,4 @@
 // ignore_for_file: inference_failure_on_function_invocation
-
 import 'package:test/test.dart';
 
 import 'package:kfx_dependency_injection/kfx_dependency_injection.dart';
@@ -400,5 +399,16 @@ void main() {
     expect(t0.wasInitialized, true);
     expect(t1.wasInitialized, true);
     expect(_TestClass.initializationCount, 1);
+  });
+
+  test("PlatformInfo must return", () {
+    final pi = ServiceProvider.platformInfo;
+
+    expect(pi.isAndroidDevice, false);
+    expect(pi.isDebug, true);
+    expect(pi.isIOSDevice, false);
+    expect(pi.platformDesignSystem, PlatformDesignSystem.appleHumanIntercace);
+    expect(pi.platformHost, PlatformHost.macos);
+    expect(pi.platformMedia, PlatformMedia.desktop);
   });
 }

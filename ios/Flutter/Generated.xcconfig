@@ -1,11 +1,11 @@
 // This is a generated file; do not edit or check into version control.
-FLUTTER_ROOT=/Users/jckodel/fvm/versions/3.7.6
+FLUTTER_ROOT=/Users/jckodel/fvm/versions/3.7.7
 FLUTTER_APPLICATION_PATH=/Users/jckodel/Desktop/kfx_dependency_injection
 COCOAPODS_PARALLEL_CODE_SIGN=true
 FLUTTER_TARGET=lib/main.dart
 FLUTTER_BUILD_DIR=build
 FLUTTER_BUILD_NAME=1.5.1
-FLUTTER_BUILD_NUMBER=1.5.1
+FLUTTER_BUILD_NUMBER=2
 EXCLUDED_ARCHS[sdk=iphonesimulator*]=i386
 EXCLUDED_ARCHS[sdk=iphoneos*]=armv7
 DART_OBFUSCATION=false

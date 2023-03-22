@@ -277,6 +277,9 @@ abstract class ServiceProvider {
     return service;
   }
 
+  // ignore: invalid_use_of_protected_member
+  static PlatformInfo get platformInfo => PlatformInfo.platformInfo;
+
   static String _getServiceKey<TService>(String? key) {
     final serviceKey = TService.toString();
     final serviceKeyLower = serviceKey.toLowerCase();
