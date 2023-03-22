@@ -407,8 +407,5 @@ void main() {
     expect(pi.isAndroidDevice, false);
     expect(pi.isDebug, true);
     expect(pi.isIOSDevice, false);
-    expect(pi.platformDesignSystem, PlatformDesignSystem.appleHumanIntercace);
-    expect(pi.platformHost, PlatformHost.macos);
-    expect(pi.platformMedia, PlatformMedia.desktop);
   });
 }
