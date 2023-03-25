@@ -103,3 +103,7 @@ service isn't registered)
 ## 1.5.2
 
 * `PlatformInfo` is now publicly available through `ServiceProvider`
+
+## 1.6.0
+
+* BREAKING CHANGE: `PlatformInfo` now has a `nativePlatform` to get info about where is the app running (regarding a native Flutter app (android, ios, windows, etc.) or Flutter web)

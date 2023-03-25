@@ -404,8 +404,6 @@ void main() {
   test("PlatformInfo must return", () {
     final pi = ServiceProvider.platformInfo;
 
-    expect(pi.isAndroidDevice, false);
     expect(pi.isDebug, true);
-    expect(pi.isIOSDevice, false);
   });
 }

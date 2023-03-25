@@ -22,13 +22,36 @@ class PlatformInfo implements IPlatformInfo {
   @protected
   static PlatformInfo get platformInfo => _platformInfo ?? (_platformInfo = getCurrentPlatformInfo());
 
-  /// Shortcut to test if app is running on an Android phone or tablet
+  /// Shortcut to test if app is running on an Android phone or tablet (not as a web app)
   @override
-  bool get isAndroidDevice => platformMedia == PlatformMedia.mobile && platformHost == PlatformHost.android;
-
-  /// Shortcut to test if app is running on an iPhone or iPad
-  @override
-  bool get isIOSDevice => platformMedia == PlatformMedia.mobile && platformHost == PlatformHost.ios;
+  NativePlatform get nativePlatform {
+    switch (platformMedia) {
+      case PlatformMedia.web:
+        return NativePlatform.web;
+      case PlatformMedia.desktop:
+        switch (platformHost) {
+          case PlatformHost.windows:
+            return NativePlatform.windows;
+          case PlatformHost.macos:
+            return NativePlatform.macos;
+          case PlatformHost.linux:
+            return NativePlatform.linux;
+          default:
+            return NativePlatform.unknown;
+        }
+      case PlatformMedia.mobile:
+        switch (platformHost) {
+          case PlatformHost.android:
+            return NativePlatform.android;
+          case PlatformHost.ios:
+            return NativePlatform.ios;
+          default:
+            return NativePlatform.unknown;
+        }
+      case PlatformMedia.unknown:
+        return NativePlatform.unknown;
+    }
+  }
 
   /// `true` when the app is running in debug mode, `false` for release
   @override
